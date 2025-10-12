@@ -1,0 +1,7 @@
+libs*
+target
+app*
+node_modules
+.prettierrc*
+package*
+.veles

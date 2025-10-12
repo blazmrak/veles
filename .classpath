@@ -1,0 +1,293 @@
+<classpath>
+  <classpathentry kind="src" path="./src"/>
+  <classpathentry kind="src" path="target/generated-sources/annotations">
+    <attributes>
+      <attribute name="optional" value="true"/>
+    </attributes>
+  </classpathentry>
+  <classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+
+	<classpathentry kind="lib" path="/home/blaz/.m2/repository/info/picocli/picocli/4.7.7/picocli-4.7.7.jar" sourcepath="/home/blaz/.m2/repository/info/picocli/picocli/4.7.7/picocli-4.7.7-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/home/blaz/.m2/repository/info/picocli/picocli/4.7.7/picocli-4.7.7-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/blaz/.m2/repository/org/yaml/snakeyaml/2.4/snakeyaml-2.4.jar" sourcepath="/home/blaz/.m2/repository/org/yaml/snakeyaml/2.4/snakeyaml-2.4-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/home/blaz/.m2/repository/org/yaml/snakeyaml/2.4/snakeyaml-2.4-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/blaz/.m2/repository/eu/maveniverse/maven/mima/context/2.4.34/context-2.4.34.jar" sourcepath="/home/blaz/.m2/repository/eu/maveniverse/maven/mima/context/2.4.34/context-2.4.34-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/home/blaz/.m2/repository/eu/maveniverse/maven/mima/context/2.4.34/context-2.4.34-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/blaz/.m2/repository/org/apache/maven/resolver/maven-resolver-api/1.9.24/maven-resolver-api-1.9.24.jar" sourcepath="/home/blaz/.m2/repository/org/apache/maven/resolver/maven-resolver-api/1.9.24/maven-resolver-api-1.9.24-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/home/blaz/.m2/repository/org/apache/maven/resolver/maven-resolver-api/1.9.24/maven-resolver-api-1.9.24-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/blaz/.m2/repository/org/apache/maven/resolver/maven-resolver-util/1.9.24/maven-resolver-util-1.9.24.jar" sourcepath="/home/blaz/.m2/repository/org/apache/maven/resolver/maven-resolver-util/1.9.24/maven-resolver-util-1.9.24-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/home/blaz/.m2/repository/org/apache/maven/resolver/maven-resolver-util/1.9.24/maven-resolver-util-1.9.24-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/blaz/.m2/repository/eu/maveniverse/maven/mima/runtime/standalone-static/2.4.34/standalone-static-2.4.34.jar" sourcepath="/home/blaz/.m2/repository/eu/maveniverse/maven/mima/runtime/standalone-static/2.4.34/standalone-static-2.4.34-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/home/blaz/.m2/repository/eu/maveniverse/maven/mima/runtime/standalone-static/2.4.34/standalone-static-2.4.34-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/blaz/.m2/repository/eu/maveniverse/maven/mima/runtime/standalone-shared/2.4.34/standalone-shared-2.4.34.jar" sourcepath="/home/blaz/.m2/repository/eu/maveniverse/maven/mima/runtime/standalone-shared/2.4.34/standalone-shared-2.4.34-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/home/blaz/.m2/repository/eu/maveniverse/maven/mima/runtime/standalone-shared/2.4.34/standalone-shared-2.4.34-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/blaz/.m2/repository/org/apache/maven/resolver/maven-resolver-spi/1.9.24/maven-resolver-spi-1.9.24.jar" sourcepath="/home/blaz/.m2/repository/org/apache/maven/resolver/maven-resolver-spi/1.9.24/maven-resolver-spi-1.9.24-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/home/blaz/.m2/repository/org/apache/maven/resolver/maven-resolver-spi/1.9.24/maven-resolver-spi-1.9.24-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/blaz/.m2/repository/org/apache/maven/resolver/maven-resolver-connector-basic/1.9.24/maven-resolver-connector-basic-1.9.24.jar" sourcepath="/home/blaz/.m2/repository/org/apache/maven/resolver/maven-resolver-connector-basic/1.9.24/maven-resolver-connector-basic-1.9.24-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/home/blaz/.m2/repository/org/apache/maven/resolver/maven-resolver-connector-basic/1.9.24/maven-resolver-connector-basic-1.9.24-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/blaz/.m2/repository/org/apache/maven/resolver/maven-resolver-named-locks/1.9.24/maven-resolver-named-locks-1.9.24.jar" sourcepath="/home/blaz/.m2/repository/org/apache/maven/resolver/maven-resolver-named-locks/1.9.24/maven-resolver-named-locks-1.9.24-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/home/blaz/.m2/repository/org/apache/maven/resolver/maven-resolver-named-locks/1.9.24/maven-resolver-named-locks-1.9.24-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/blaz/.m2/repository/org/apache/maven/resolver/maven-resolver-impl/1.9.24/maven-resolver-impl-1.9.24.jar" sourcepath="/home/blaz/.m2/repository/org/apache/maven/resolver/maven-resolver-impl/1.9.24/maven-resolver-impl-1.9.24-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/home/blaz/.m2/repository/org/apache/maven/resolver/maven-resolver-impl/1.9.24/maven-resolver-impl-1.9.24-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/blaz/.m2/repository/org/apache/maven/resolver/maven-resolver-transport-file/1.9.24/maven-resolver-transport-file-1.9.24.jar" sourcepath="/home/blaz/.m2/repository/org/apache/maven/resolver/maven-resolver-transport-file/1.9.24/maven-resolver-transport-file-1.9.24-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/home/blaz/.m2/repository/org/apache/maven/resolver/maven-resolver-transport-file/1.9.24/maven-resolver-transport-file-1.9.24-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/blaz/.m2/repository/org/apache/maven/resolver/maven-resolver-transport-http/1.9.24/maven-resolver-transport-http-1.9.24.jar" sourcepath="/home/blaz/.m2/repository/org/apache/maven/resolver/maven-resolver-transport-http/1.9.24/maven-resolver-transport-http-1.9.24-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/home/blaz/.m2/repository/org/apache/maven/resolver/maven-resolver-transport-http/1.9.24/maven-resolver-transport-http-1.9.24-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/blaz/.m2/repository/com/google/code/gson/gson/2.13.1/gson-2.13.1.jar" sourcepath="/home/blaz/.m2/repository/com/google/code/gson/gson/2.13.1/gson-2.13.1-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/home/blaz/.m2/repository/com/google/code/gson/gson/2.13.1/gson-2.13.1-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/blaz/.m2/repository/com/google/errorprone/error_prone_annotations/2.38.0/error_prone_annotations-2.38.0.jar" sourcepath="/home/blaz/.m2/repository/com/google/errorprone/error_prone_annotations/2.38.0/error_prone_annotations-2.38.0-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/home/blaz/.m2/repository/com/google/errorprone/error_prone_annotations/2.38.0/error_prone_annotations-2.38.0-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/blaz/.m2/repository/org/apache/httpcomponents/httpclient/4.5.14/httpclient-4.5.14.jar" sourcepath="/home/blaz/.m2/repository/org/apache/httpcomponents/httpclient/4.5.14/httpclient-4.5.14-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/home/blaz/.m2/repository/org/apache/httpcomponents/httpclient/4.5.14/httpclient-4.5.14-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/blaz/.m2/repository/org/apache/httpcomponents/httpcore/4.4.16/httpcore-4.4.16.jar" sourcepath="/home/blaz/.m2/repository/org/apache/httpcomponents/httpcore/4.4.16/httpcore-4.4.16-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/home/blaz/.m2/repository/org/apache/httpcomponents/httpcore/4.4.16/httpcore-4.4.16-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/blaz/.m2/repository/commons-codec/commons-codec/1.18.0/commons-codec-1.18.0.jar" sourcepath="/home/blaz/.m2/repository/commons-codec/commons-codec/1.18.0/commons-codec-1.18.0-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/home/blaz/.m2/repository/commons-codec/commons-codec/1.18.0/commons-codec-1.18.0-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/blaz/.m2/repository/org/slf4j/jcl-over-slf4j/1.7.36/jcl-over-slf4j-1.7.36.jar" sourcepath="/home/blaz/.m2/repository/org/slf4j/jcl-over-slf4j/1.7.36/jcl-over-slf4j-1.7.36-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/home/blaz/.m2/repository/org/slf4j/jcl-over-slf4j/1.7.36/jcl-over-slf4j-1.7.36-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/blaz/.m2/repository/org/apache/maven/resolver/maven-resolver-supplier/1.9.24/maven-resolver-supplier-1.9.24.jar" sourcepath="/home/blaz/.m2/repository/org/apache/maven/resolver/maven-resolver-supplier/1.9.24/maven-resolver-supplier-1.9.24-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/home/blaz/.m2/repository/org/apache/maven/resolver/maven-resolver-supplier/1.9.24/maven-resolver-supplier-1.9.24-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/blaz/.m2/repository/org/apache/maven/maven-resolver-provider/3.9.11/maven-resolver-provider-3.9.11.jar" sourcepath="/home/blaz/.m2/repository/org/apache/maven/maven-resolver-provider/3.9.11/maven-resolver-provider-3.9.11-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/home/blaz/.m2/repository/org/apache/maven/maven-resolver-provider/3.9.11/maven-resolver-provider-3.9.11-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/blaz/.m2/repository/org/apache/maven/maven-model/3.9.11/maven-model-3.9.11.jar" sourcepath="/home/blaz/.m2/repository/org/apache/maven/maven-model/3.9.11/maven-model-3.9.11-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/home/blaz/.m2/repository/org/apache/maven/maven-model/3.9.11/maven-model-3.9.11-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/blaz/.m2/repository/org/apache/maven/maven-repository-metadata/3.9.11/maven-repository-metadata-3.9.11.jar" sourcepath="/home/blaz/.m2/repository/org/apache/maven/maven-repository-metadata/3.9.11/maven-repository-metadata-3.9.11-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/home/blaz/.m2/repository/org/apache/maven/maven-repository-metadata/3.9.11/maven-repository-metadata-3.9.11-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/blaz/.m2/repository/org/apache/maven/maven-model-builder/3.9.11/maven-model-builder-3.9.11.jar" sourcepath="/home/blaz/.m2/repository/org/apache/maven/maven-model-builder/3.9.11/maven-model-builder-3.9.11-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/home/blaz/.m2/repository/org/apache/maven/maven-model-builder/3.9.11/maven-model-builder-3.9.11-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/blaz/.m2/repository/org/codehaus/plexus/plexus-interpolation/1.28/plexus-interpolation-1.28.jar" sourcepath="/home/blaz/.m2/repository/org/codehaus/plexus/plexus-interpolation/1.28/plexus-interpolation-1.28-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/home/blaz/.m2/repository/org/codehaus/plexus/plexus-interpolation/1.28/plexus-interpolation-1.28-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/blaz/.m2/repository/org/apache/maven/maven-builder-support/3.9.11/maven-builder-support-3.9.11.jar" sourcepath="/home/blaz/.m2/repository/org/apache/maven/maven-builder-support/3.9.11/maven-builder-support-3.9.11-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/home/blaz/.m2/repository/org/apache/maven/maven-builder-support/3.9.11/maven-builder-support-3.9.11-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/blaz/.m2/repository/org/ow2/asm/asm/9.8/asm-9.8.jar" sourcepath="/home/blaz/.m2/repository/org/ow2/asm/asm/9.8/asm-9.8-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/home/blaz/.m2/repository/org/ow2/asm/asm/9.8/asm-9.8-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/blaz/.m2/repository/org/apache/maven/maven-settings-builder/3.9.11/maven-settings-builder-3.9.11.jar" sourcepath="/home/blaz/.m2/repository/org/apache/maven/maven-settings-builder/3.9.11/maven-settings-builder-3.9.11-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/home/blaz/.m2/repository/org/apache/maven/maven-settings-builder/3.9.11/maven-settings-builder-3.9.11-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/blaz/.m2/repository/org/apache/maven/maven-settings/3.9.11/maven-settings-3.9.11.jar" sourcepath="/home/blaz/.m2/repository/org/apache/maven/maven-settings/3.9.11/maven-settings-3.9.11-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/home/blaz/.m2/repository/org/apache/maven/maven-settings/3.9.11/maven-settings-3.9.11-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/blaz/.m2/repository/org/codehaus/plexus/plexus-sec-dispatcher/2.0/plexus-sec-dispatcher-2.0.jar" sourcepath="/home/blaz/.m2/repository/org/codehaus/plexus/plexus-sec-dispatcher/2.0/plexus-sec-dispatcher-2.0-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/home/blaz/.m2/repository/org/codehaus/plexus/plexus-sec-dispatcher/2.0/plexus-sec-dispatcher-2.0-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/blaz/.m2/repository/org/codehaus/plexus/plexus-cipher/2.0/plexus-cipher-2.0.jar" sourcepath="/home/blaz/.m2/repository/org/codehaus/plexus/plexus-cipher/2.0/plexus-cipher-2.0-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/home/blaz/.m2/repository/org/codehaus/plexus/plexus-cipher/2.0/plexus-cipher-2.0-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/blaz/.m2/repository/org/apache/maven/maven-artifact/3.9.11/maven-artifact-3.9.11.jar" sourcepath="/home/blaz/.m2/repository/org/apache/maven/maven-artifact/3.9.11/maven-artifact-3.9.11-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/home/blaz/.m2/repository/org/apache/maven/maven-artifact/3.9.11/maven-artifact-3.9.11-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/blaz/.m2/repository/org/codehaus/plexus/plexus-utils/3.6.0/plexus-utils-3.6.0.jar" sourcepath="/home/blaz/.m2/repository/org/codehaus/plexus/plexus-utils/3.6.0/plexus-utils-3.6.0-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/home/blaz/.m2/repository/org/codehaus/plexus/plexus-utils/3.6.0/plexus-utils-3.6.0-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/blaz/.m2/repository/ch/qos/logback/logback-core/1.4.7/logback-core-1.4.7.jar" sourcepath="/home/blaz/.m2/repository/ch/qos/logback/logback-core/1.4.7/logback-core-1.4.7-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/home/blaz/.m2/repository/ch/qos/logback/logback-core/1.4.7/logback-core-1.4.7-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/blaz/.m2/repository/ch/qos/logback/logback-classic/1.4.7/logback-classic-1.4.7.jar" sourcepath="/home/blaz/.m2/repository/ch/qos/logback/logback-classic/1.4.7/logback-classic-1.4.7-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/home/blaz/.m2/repository/ch/qos/logback/logback-classic/1.4.7/logback-classic-1.4.7-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/blaz/.m2/repository/org/slf4j/slf4j-api/2.0.4/slf4j-api-2.0.4.jar" sourcepath="/home/blaz/.m2/repository/org/slf4j/slf4j-api/2.0.4/slf4j-api-2.0.4-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/home/blaz/.m2/repository/org/slf4j/slf4j-api/2.0.4/slf4j-api-2.0.4-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/blaz/.m2/repository/org/jline/jline/3.30.5/jline-3.30.5.jar" sourcepath="/home/blaz/.m2/repository/org/jline/jline/3.30.5/jline-3.30.5-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/home/blaz/.m2/repository/org/jline/jline/3.30.5/jline-3.30.5-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/blaz/.m2/repository/io/avaje/avaje-jsonb/3.7/avaje-jsonb-3.7.jar" sourcepath="/home/blaz/.m2/repository/io/avaje/avaje-jsonb/3.7/avaje-jsonb-3.7-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/home/blaz/.m2/repository/io/avaje/avaje-jsonb/3.7/avaje-jsonb-3.7-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/blaz/.m2/repository/io/avaje/avaje-json-core/3.7/avaje-json-core-3.7.jar" sourcepath="/home/blaz/.m2/repository/io/avaje/avaje-json-core/3.7/avaje-json-core-3.7-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/home/blaz/.m2/repository/io/avaje/avaje-json-core/3.7/avaje-json-core-3.7-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/blaz/.m2/repository/io/avaje/avaje-jsonb-inject-plugin/3.7/avaje-jsonb-inject-plugin-3.7.jar" sourcepath="/home/blaz/.m2/repository/io/avaje/avaje-jsonb-inject-plugin/3.7/avaje-jsonb-inject-plugin-3.7-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/home/blaz/.m2/repository/io/avaje/avaje-jsonb-inject-plugin/3.7/avaje-jsonb-inject-plugin-3.7-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/blaz/.m2/repository/org/eclipse/jdt/org.eclipse.jdt.core/3.32.0/org.eclipse.jdt.core-3.32.0.jar" sourcepath="/home/blaz/.m2/repository/org/eclipse/jdt/org.eclipse.jdt.core/3.32.0/org.eclipse.jdt.core-3.32.0-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/home/blaz/.m2/repository/org/eclipse/jdt/org.eclipse.jdt.core/3.32.0/org.eclipse.jdt.core-3.32.0-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/blaz/.m2/repository/org/eclipse/platform/org.eclipse.core.resources/3.18.100/org.eclipse.core.resources-3.18.100.jar" sourcepath="/home/blaz/.m2/repository/org/eclipse/platform/org.eclipse.core.resources/3.18.100/org.eclipse.core.resources-3.18.100-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/home/blaz/.m2/repository/org/eclipse/platform/org.eclipse.core.resources/3.18.100/org.eclipse.core.resources-3.18.100-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/blaz/.m2/repository/org/eclipse/platform/org.eclipse.core.expressions/3.8.200/org.eclipse.core.expressions-3.8.200.jar" sourcepath="/home/blaz/.m2/repository/org/eclipse/platform/org.eclipse.core.expressions/3.8.200/org.eclipse.core.expressions-3.8.200-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/home/blaz/.m2/repository/org/eclipse/platform/org.eclipse.core.expressions/3.8.200/org.eclipse.core.expressions-3.8.200-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/blaz/.m2/repository/org/eclipse/platform/org.eclipse.osgi/3.18.200/org.eclipse.osgi-3.18.200.jar" sourcepath="/home/blaz/.m2/repository/org/eclipse/platform/org.eclipse.osgi/3.18.200/org.eclipse.osgi-3.18.200-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/home/blaz/.m2/repository/org/eclipse/platform/org.eclipse.osgi/3.18.200/org.eclipse.osgi-3.18.200-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/blaz/.m2/repository/org/eclipse/platform/org.eclipse.core.runtime/3.26.100/org.eclipse.core.runtime-3.26.100.jar" sourcepath="/home/blaz/.m2/repository/org/eclipse/platform/org.eclipse.core.runtime/3.26.100/org.eclipse.core.runtime-3.26.100-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/home/blaz/.m2/repository/org/eclipse/platform/org.eclipse.core.runtime/3.26.100/org.eclipse.core.runtime-3.26.100-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/blaz/.m2/repository/org/eclipse/platform/org.eclipse.equinox.common/3.17.0/org.eclipse.equinox.common-3.17.0.jar" sourcepath="/home/blaz/.m2/repository/org/eclipse/platform/org.eclipse.equinox.common/3.17.0/org.eclipse.equinox.common-3.17.0-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/home/blaz/.m2/repository/org/eclipse/platform/org.eclipse.equinox.common/3.17.0/org.eclipse.equinox.common-3.17.0-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/blaz/.m2/repository/org/eclipse/platform/org.eclipse.core.jobs/3.13.200/org.eclipse.core.jobs-3.13.200.jar" sourcepath="/home/blaz/.m2/repository/org/eclipse/platform/org.eclipse.core.jobs/3.13.200/org.eclipse.core.jobs-3.13.200-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/home/blaz/.m2/repository/org/eclipse/platform/org.eclipse.core.jobs/3.13.200/org.eclipse.core.jobs-3.13.200-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/blaz/.m2/repository/org/eclipse/platform/org.eclipse.equinox.registry/3.11.200/org.eclipse.equinox.registry-3.11.200.jar" sourcepath="/home/blaz/.m2/repository/org/eclipse/platform/org.eclipse.equinox.registry/3.11.200/org.eclipse.equinox.registry-3.11.200-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/home/blaz/.m2/repository/org/eclipse/platform/org.eclipse.equinox.registry/3.11.200/org.eclipse.equinox.registry-3.11.200-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/blaz/.m2/repository/org/eclipse/platform/org.eclipse.equinox.preferences/3.10.100/org.eclipse.equinox.preferences-3.10.100.jar" sourcepath="/home/blaz/.m2/repository/org/eclipse/platform/org.eclipse.equinox.preferences/3.10.100/org.eclipse.equinox.preferences-3.10.100-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/home/blaz/.m2/repository/org/eclipse/platform/org.eclipse.equinox.preferences/3.10.100/org.eclipse.equinox.preferences-3.10.100-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/blaz/.m2/repository/org/osgi/org.osgi.service.prefs/1.1.2/org.osgi.service.prefs-1.1.2.jar" sourcepath="/home/blaz/.m2/repository/org/osgi/org.osgi.service.prefs/1.1.2/org.osgi.service.prefs-1.1.2-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/home/blaz/.m2/repository/org/osgi/org.osgi.service.prefs/1.1.2/org.osgi.service.prefs-1.1.2-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/blaz/.m2/repository/org/osgi/osgi.annotation/8.0.1/osgi.annotation-8.0.1.jar" sourcepath="/home/blaz/.m2/repository/org/osgi/osgi.annotation/8.0.1/osgi.annotation-8.0.1-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/home/blaz/.m2/repository/org/osgi/osgi.annotation/8.0.1/osgi.annotation-8.0.1-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/blaz/.m2/repository/org/eclipse/platform/org.eclipse.core.contenttype/3.8.200/org.eclipse.core.contenttype-3.8.200.jar" sourcepath="/home/blaz/.m2/repository/org/eclipse/platform/org.eclipse.core.contenttype/3.8.200/org.eclipse.core.contenttype-3.8.200-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/home/blaz/.m2/repository/org/eclipse/platform/org.eclipse.core.contenttype/3.8.200/org.eclipse.core.contenttype-3.8.200-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/blaz/.m2/repository/org/eclipse/platform/org.eclipse.equinox.app/1.6.200/org.eclipse.equinox.app-1.6.200.jar" sourcepath="/home/blaz/.m2/repository/org/eclipse/platform/org.eclipse.equinox.app/1.6.200/org.eclipse.equinox.app-1.6.200-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/home/blaz/.m2/repository/org/eclipse/platform/org.eclipse.equinox.app/1.6.200/org.eclipse.equinox.app-1.6.200-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/blaz/.m2/repository/org/eclipse/platform/org.eclipse.core.filesystem/1.9.500/org.eclipse.core.filesystem-1.9.500.jar" sourcepath="/home/blaz/.m2/repository/org/eclipse/platform/org.eclipse.core.filesystem/1.9.500/org.eclipse.core.filesystem-1.9.500-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/home/blaz/.m2/repository/org/eclipse/platform/org.eclipse.core.filesystem/1.9.500/org.eclipse.core.filesystem-1.9.500-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/blaz/.m2/repository/org/eclipse/platform/org.eclipse.text/3.12.300/org.eclipse.text-3.12.300.jar" sourcepath="/home/blaz/.m2/repository/org/eclipse/platform/org.eclipse.text/3.12.300/org.eclipse.text-3.12.300-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/home/blaz/.m2/repository/org/eclipse/platform/org.eclipse.text/3.12.300/org.eclipse.text-3.12.300-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/blaz/.m2/repository/org/eclipse/platform/org.eclipse.core.commands/3.10.300/org.eclipse.core.commands-3.10.300.jar" sourcepath="/home/blaz/.m2/repository/org/eclipse/platform/org.eclipse.core.commands/3.10.300/org.eclipse.core.commands-3.10.300-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/home/blaz/.m2/repository/org/eclipse/platform/org.eclipse.core.commands/3.10.300/org.eclipse.core.commands-3.10.300-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+
+
+  <classpathentry kind="output" path="target/classes"/>
+</classpath>

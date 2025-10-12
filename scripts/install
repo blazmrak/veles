@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+sudo cp /usr/bin/veles /usr/bin/veles-old
+sudo cp target/app /usr/bin/veles

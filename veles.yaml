@@ -1,0 +1,19 @@
+artifact: veles:0.1.0
+
+settings:
+  native:
+    graalVersion: 25
+
+dependencies:
+  - info.picocli:picocli:4.7.7
+  - "@info.picocli:picocli-codegen:4.7.7"
+  - org.yaml:snakeyaml:2.4
+  - eu.maveniverse.maven.mima:context:2.4.34
+  - +eu.maveniverse.maven.mima.runtime:standalone-static:2.4.34
+  - -org.apache.maven:maven-artifact:3.9.11
+  - ch.qos.logback:logback-core:1.4.7
+  - ch.qos.logback:logback-classic:1.4.7
+  - org.jline:jline:3.30.5
+  - io.avaje:avaje-jsonb:3.7
+  - "@io.avaje:avaje-jsonb-generator:3.7"
+  - org.eclipse.jdt:org.eclipse.jdt.core:3.32.0
