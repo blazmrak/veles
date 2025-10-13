@@ -269,3 +269,10 @@ If not, use `veles dep`.
 
 - Huge shoutout to Cay Horstmann for the talk that inspired this project [Java for Small Coding Tasks](https://www.youtube.com/watch?v=04wFgshWMdA)
 - [JPM](https://github.com/codejive/java-jpm) where I discovered MIMA and JLine.
+
+## Similar projects
+
+- [JBang](https://github.com/jbangdev/jbang)
+- [JPM](https://github.com/codejive/java-jpm)
+- [JResolve](https://github.com/bowbahdoe/jresolve-cli)
+- [Pottery](https://github.com/kmruiz/pottery/)
