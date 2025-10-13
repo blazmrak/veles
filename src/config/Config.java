@@ -257,7 +257,7 @@ public class Config {
 		var fileName = filePath.getFileName().toString();
 		var className = fileName.substring(0, fileName.length() - ".java".length());
 		if (firstLine != null && firstLine.startsWith("package")) {
-			var pkg = firstLine.trim().substring(7, firstLine.length() - 1);
+			var pkg = firstLine.trim().substring(8, firstLine.length() - 1);
 			return new Entrypoint(pkg + "." + className, filePath);
 		} else {
 			return new Entrypoint(className, filePath);

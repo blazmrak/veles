@@ -20,7 +20,7 @@ import picocli.CommandLine.Command;
 	name = "veles",
 	description = { "Simple JDK wrapper" },
 	mixinStandardHelpOptions = true,
-	version = "0.1.0"
+	version = "0.1.1"
 )
 public class App {
 	public static void main(String[] args) {
