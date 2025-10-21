@@ -15,14 +15,19 @@ jobs:
           distribution: "temurin"
           java-version: "25"
 
-      - env:
+      - name: Download veles
+        env:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release download 0.1.0 --pattern "*.jar" --dir ./release
+      - name: Format
+        run: |
           java -jar ./release/veles-0.1.0.jar format -c
+      - name: Compile
+        run: |
           java -jar ./release/veles-0.1.0.jar compile -u
 
-      - name: Upload binary
+      - name: Upload jar
         uses: actions/upload-artifact@v4
         with:
           name: veles-jar
@@ -60,7 +65,7 @@ jobs:
       - uses: graalvm/setup-graalvm@v1
         with:
           java-version: "25"
-          distribution: "temurin"
+          distribution: "graalvm"
           github-token: ${{ secrets.GITHUB_TOKEN }}
           native-image-job-reports: "true"
       - uses: actions/download-artifact@v5
@@ -72,7 +77,6 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release download 0.1.0 --pattern "*.jar" --dir ./release
           native-image -jar ./artifact/app-uber.jar -o veles
 
       - name: Upload binary
