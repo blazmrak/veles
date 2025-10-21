@@ -36,6 +36,8 @@ jobs:
           native-image-job-reports: "true"
 
       - name: Build executable
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           gh release download 0.1.0 --pattern "*.jar" --dir ./release
           java -jar ./release/veles-0.1.0.jar compile -n
