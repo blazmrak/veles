@@ -10,8 +10,13 @@ jobs:
     name: Check format
     steps:
       - uses: actions/checkout@v4
-      - name: Build executable
-        env:
+      - uses: graalvm/setup-graalvm@v1
+        with:
+          java-version: "25"
+          distribution: "graalvm"
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          native-image-job-reports: "true"
+      - env:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release download 0.1.0 --pattern "*.jar" --dir ./release
