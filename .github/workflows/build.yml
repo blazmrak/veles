@@ -70,7 +70,7 @@ jobs:
           native-image-job-reports: "true"
       - uses: actions/download-artifact@v5
         with:
-          name: veles-uber-jar
+          name: veles-jar
           path: ./artifact
 
       - name: Build executable
