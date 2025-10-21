@@ -77,10 +77,10 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          native-image -jar ./artifact/app-uber.jar -o veles
+          native-image -jar ./artifact/app-uber.jar -o target/veles
 
       - name: Upload binary
         uses: actions/upload-artifact@v4
         with:
           name: veles-${{ matrix.os }}-${{ matrix.arch }}
-          path: target/app*
+          path: target/veles*
