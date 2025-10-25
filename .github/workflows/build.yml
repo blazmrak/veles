@@ -6,6 +6,8 @@ on:
     branches:
       - master
   pull_request:
+permissions:
+  contents: write
 jobs:
   build-jar:
     name: Build uber jar
