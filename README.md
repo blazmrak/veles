@@ -9,6 +9,15 @@ you want to compile, then run `veles compile --uber` - This is how Veles is comp
 
 ## Installation
 
+### Pre-built binaries
+
+> **NOTE:** If you are running ARM Linux or Windows or x86 MacOS, please create an issue.
+
+Download the [latest release](https://github.com/blazmrak/veles/releases/latest)
+for your platform and add the binary to `PATH`.
+Once you updated the `PATH`, you can test if it worked by running `veles --help`
+in a new terminal window.
+
 ### Manual
 
 Depending on how you want to run it, there are multiple options:

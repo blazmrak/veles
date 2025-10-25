@@ -1,9 +1,13 @@
 name: Build
 on:
   push:
+    tags:
+      - "*"
     branches:
       - master
   pull_request:
+permissions:
+  contents: write
 jobs:
   build-jar:
     name: Build uber jar
@@ -54,13 +58,14 @@ jobs:
             arch: x86_64
             runner: ubuntu-latest
 
-          - os: linux
-            arch: arm64
-            runner: ubuntu-24.04-arm
+          # Uncomment when someone will need it
+          # - os: linux
+          #   arch: arm64
+          #   runner: ubuntu-24.04-arm
 
-          - os: macos
-            arch: x86_64
-            runner: macos-13
+          # - os: macos
+          #   arch: x86_64
+          #   runner: macos-13
 
           - os: macos
             arch: arm64
@@ -94,3 +99,42 @@ jobs:
         with:
           name: veles-${{ matrix.os }}-${{ matrix.arch }}
           path: target/veles*
+
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    needs: build-native
+    if: startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/master'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v5
+        with:
+          path: ./release-artifacts
+
+      - name: Determine release type
+        id: rel
+        run: |
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            echo "tag_release=true" >> "$GITHUB_OUTPUT"
+            echo "tag_name=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag_release=false" >> "$GITHUB_OUTPUT"
+            echo "tag_name=prerelease-${GITHUB_SHA:0:7}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create Release
+        run: |
+          if [[ "${{ steps.rel.outputs.tag_release }}" == "true" ]]; then
+            echo "Creating release ${{ steps.rel.outputs.tag_name }}"
+            gh release create "${{ steps.rel.outputs.tag_name }}" ./release-artifacts/* \
+              --title "${{ steps.rel.outputs.tag_name }}" \
+              --generate-notes
+          else
+            echo "Creating prerelease..."
+            gh release create "${{ steps.rel.outputs.tag_name }}" ./release-artifacts/* \
+              --title "Nightly Build - ${{ steps.rel.outputs.tag_name }}" \
+              --generate-notes \
+              --prerelease
+          fi
+        env:
+          GH_TOKEN: ${{ github.token }}
