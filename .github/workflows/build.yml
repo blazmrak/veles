@@ -40,26 +40,25 @@ jobs:
     strategy:
       matrix:
         include:
-          - os: linux
-            arch: x86_64
-            runner: ubuntu-latest
-
-          - os: linux
-            arch: arm64
-            runner: ubuntu-24.04-arm
-
-          - os: macos
-            arch: x86_64
-            runner: macos-13
-
-          - os: macos
-            arch: arm64
-            runner: macos-14
-
-          # FIXME: Windows doesn't work
-          # - os: windows
+          # - os: linux
           #   arch: x86_64
-          #   runner: windows-latest
+          #   runner: ubuntu-latest
+          #
+          # - os: linux
+          #   arch: arm64
+          #   runner: ubuntu-24.04-arm
+          #
+          # - os: macos
+          #   arch: x86_64
+          #   runner: macos-13
+          #
+          # - os: macos
+          #   arch: arm64
+          #   runner: macos-14
+
+          - os: windows
+            arch: x86_64
+            runner: windows-latest
     steps:
       - uses: actions/checkout@v4
       - uses: graalvm/setup-graalvm@v1
