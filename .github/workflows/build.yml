@@ -132,3 +132,5 @@ jobs:
               --generate-notes \
               --prerelease
           fi
+        env:
+          GH_TOKEN: ${{ github.token }}
