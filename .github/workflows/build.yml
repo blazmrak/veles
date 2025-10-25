@@ -15,7 +15,7 @@ jobs:
       - uses: actions/setup-java@v5
         with:
           distribution: "temurin"
-          java-version: "24.0.2"
+          java-version: "25"
 
       - name: Download veles
         env:
@@ -73,7 +73,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: graalvm/setup-graalvm@v1
         with:
-          java-version: "24.0.2"
+          java-version: "25"
           distribution: "graalvm"
           github-token: ${{ secrets.GITHUB_TOKEN }}
           native-image-job-reports: "true"
