@@ -92,7 +92,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           mkdir target
-          native-image -jar ./artifact/app-uber.jar -o target/veles-${{ matrix.os }}-${{ matrix-arch }}
+          native-image -jar ./artifact/app-uber.jar -o target/veles-${{ matrix.os }}-${{ matrix.arch }}
 
       - name: Upload binary
         uses: actions/upload-artifact@v4
