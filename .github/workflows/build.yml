@@ -107,6 +107,7 @@ jobs:
       - uses: actions/download-artifact@v5
         with:
           path: ./release-artifacts
+
       - name: Determine release type
         id: rel
         run: |
@@ -122,12 +123,12 @@ jobs:
         run: |
           if [[ "${{ steps.rel.outputs.tag_release }}" == "true" ]]; then
             echo "Creating release for tag ${{ steps.rel.outputs.tag_name }}"
-            gh release create "${{ steps.rel.outputs.tag_name }}" ./release-artifacts/**/* \
+            gh release create "${{ steps.rel.outputs.tag_name }}" ./release-artifacts/* \
               --title "${{ steps.rel.outputs.tag_name }}" \
               --generate-notes
           else
             echo "Creating prerelease for master"
-            gh release create "${{ steps.rel.outputs.tag_name }}" ./release-artifacts/**/* \
+            gh release create "${{ steps.rel.outputs.tag_name }}" ./release-artifacts/* \
               --title "Nightly Build - ${{ steps.rel.outputs.tag_name }}" \
               --generate-notes \
               --prerelease
