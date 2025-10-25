@@ -58,13 +58,14 @@ jobs:
             arch: x86_64
             runner: ubuntu-latest
 
-          - os: linux
-            arch: arm64
-            runner: ubuntu-24.04-arm
+          # Uncomment when someone will need it
+          # - os: linux
+          #   arch: arm64
+          #   runner: ubuntu-24.04-arm
 
-          - os: macos
-            arch: x86_64
-            runner: macos-13
+          # - os: macos
+          #   arch: x86_64
+          #   runner: macos-13
 
           - os: macos
             arch: arm64
