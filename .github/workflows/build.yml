@@ -92,7 +92,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           mkdir target
-          native-image -jar ./artifact/app-uber.jar -o target/veles
+          native-image -jar ./artifact/app-uber.jar -o target/veles-${{ matrix.os }}-${{ matrix-arch }}
 
       - name: Upload binary
         uses: actions/upload-artifact@v4
@@ -126,12 +126,12 @@ jobs:
         run: |
           if [[ "${{ steps.rel.outputs.tag_release }}" == "true" ]]; then
             echo "Creating release ${{ steps.rel.outputs.tag_name }}"
-            gh release create "${{ steps.rel.outputs.tag_name }}" ./release-artifacts/* \
+            gh release create "${{ steps.rel.outputs.tag_name }}" ./release-artifacts/**/* \
               --title "${{ steps.rel.outputs.tag_name }}" \
               --generate-notes
           else
             echo "Creating prerelease..."
-            gh release create "${{ steps.rel.outputs.tag_name }}" ./release-artifacts/* \
+            gh release create "${{ steps.rel.outputs.tag_name }}" ./release-artifacts/**/* \
               --title "Nightly Build - ${{ steps.rel.outputs.tag_name }}" \
               --generate-notes \
               --prerelease
