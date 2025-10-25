@@ -8,24 +8,34 @@ jobs:
   build-jar:
     name: Build uber jar
     runs-on: ubuntu-latest
+    env:
+      veles-version: 0.1.0
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v5
         with:
           distribution: "temurin"
-          java-version: "25"
+          java-version: "24.0.2"
 
       - name: Download veles
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release download 0.1.0 --pattern "*.jar" --dir ./release
+          gh release download ${{ env.veles-version }} --pattern "*.jar" --dir ./release
       - name: Format
         run: |
-          java -jar ./release/veles-0.1.0.jar format -c
+          java -jar ./release/veles-${{ env.veles-version}}.jar format -c
+      - name: Cache Maven dependencies
+        id: cache-npm
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: maven-${{ hashFiles('veles.yaml') }}
+          restore-keys: |
+            maven-
       - name: Compile
         run: |
-          java -jar ./release/veles-0.1.0.jar compile -u
+          java -jar ./release/veles-${{ env.veles-version}}.jar compile -u
 
       - name: Upload jar
         uses: actions/upload-artifact@v4
@@ -40,21 +50,21 @@ jobs:
     strategy:
       matrix:
         include:
-          # - os: linux
-          #   arch: x86_64
-          #   runner: ubuntu-latest
-          #
-          # - os: linux
-          #   arch: arm64
-          #   runner: ubuntu-24.04-arm
-          #
-          # - os: macos
-          #   arch: x86_64
-          #   runner: macos-13
-          #
-          # - os: macos
-          #   arch: arm64
-          #   runner: macos-14
+          - os: linux
+            arch: x86_64
+            runner: ubuntu-latest
+
+          - os: linux
+            arch: arm64
+            runner: ubuntu-24.04-arm
+
+          - os: macos
+            arch: x86_64
+            runner: macos-13
+
+          - os: macos
+            arch: arm64
+            runner: macos-14
 
           - os: windows
             arch: x86_64
@@ -63,7 +73,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: graalvm/setup-graalvm@v1
         with:
-          java-version: "25"
+          java-version: "24.0.2"
           distribution: "graalvm"
           github-token: ${{ secrets.GITHUB_TOKEN }}
           native-image-job-reports: "true"
