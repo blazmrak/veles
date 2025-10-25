@@ -104,6 +104,7 @@ jobs:
     needs: build-jar
     if: startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/master' || github.head_ref == 'feature/release-action'
     steps:
+      - uses: actions/checkout@v4
       - uses: actions/download-artifact@v5
         with:
           path: ./release-artifacts
