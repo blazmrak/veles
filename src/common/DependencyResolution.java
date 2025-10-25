@@ -3,6 +3,7 @@ package common;
 import java.util.List;
 import java.util.stream.Stream;
 
+import org.eclipse.aether.DefaultRepositorySystemSession;
 import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.aether.artifact.DefaultArtifact;
 import org.eclipse.aether.collection.CollectRequest;
@@ -46,6 +47,9 @@ public class DependencyResolution {
 		var contextOverrides = ContextOverrides.create().withUserSettings(true).build();
 		try (Context ctx = Runtimes.INSTANCE.getRuntime().create(contextOverrides)) {
 			var system = ctx.repositorySystem();
+			var session = (DefaultRepositorySystemSession) ctx.repositorySystemSession();
+			session.setSystemProperty("aether.dependencyCollector.impl", "bf");
+
 			List<Dependency> dependencies = confDependencies
 				.map(d -> new Dependency(new DefaultArtifact(d.coords()), d.scope()))
 				.toList();
@@ -54,7 +58,7 @@ public class DependencyResolution {
 				.setRepositories(ctx.remoteRepositories());
 			DependencyRequest req = new DependencyRequest().setCollectRequest(collectRequest);
 
-			return system.resolveDependencies(ctx.repositorySystemSession(), req)
+			return system.resolveDependencies(session, req)
 				.getArtifactResults()
 				.stream()
 				.map(ArtifactResult::getArtifact);
@@ -67,7 +71,9 @@ public class DependencyResolution {
 		var contextOverrides = ContextOverrides.create().withUserSettings(true).build();
 		try (Context ctx = Runtimes.INSTANCE.getRuntime().create(contextOverrides)) {
 			var system = ctx.repositorySystem();
-			var session = ctx.repositorySystemSession();
+			var session = (DefaultRepositorySystemSession) ctx.repositorySystemSession();
+			session.setSystemProperty("aether.dependencyCollector.impl", "bf");
+
 			var dependency = new Dependency(new DefaultArtifact(coords), "compile");
 
 			CollectRequest collectRequest = new CollectRequest().addDependency(dependency)
