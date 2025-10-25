@@ -119,7 +119,7 @@ jobs:
             echo "tag_name=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
           else
             echo "tag_release=false" >> "$GITHUB_OUTPUT"
-            echo "tag_name=prerelease-${GITHUB_SHA:0:7}" >> "$GITHUB_OUTPUT"
+            echo "tag_name=nightly" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Create Release
@@ -132,7 +132,7 @@ jobs:
           else
             echo "Creating prerelease..."
             gh release create "${{ steps.rel.outputs.tag_name }}" ./release-artifacts/**/* \
-              --title "Nightly Build - ${{ steps.rel.outputs.tag_name }}" \
+              --title "Latest development build" \
               --generate-notes \
               --prerelease
           fi
