@@ -1,0 +1,12 @@
+changelog:
+  categories:
+    - title: Breaking Changes
+      labels: [breaking]
+    - title: New Features
+      labels: [enhancement]
+    - title: Fixes
+      labels: [bug]
+    - title: Maintenance
+      labels: [chore, maintenance]
+    - title: Other Changes
+      labels: ["*"]
