@@ -66,6 +66,9 @@ public class Compile implements Runnable {
 	@Option(names = { "-e", "--entrypoint" }, description = { "Entrypoint for the java program" })
 	String entrypoint;
 
+	@Option(names = { "-X", "--ignore-depfiles" }, description = { "Ignore .dep files" })
+	boolean ignoreDepfiles;
+
 	@Parameters
 	List<String> args = Collections.emptyList();
 
@@ -338,22 +341,26 @@ public class Compile implements Runnable {
 			command.add("--enable-preview");
 		}
 
-		var classpath = resolvePaths(Scope.COMPILE, Scope.PROVIDED).collect(joining(":"));
-		if (!classpath.isBlank()) {
-			command.add("-cp");
-			command.add(classpath);
-		}
+		if (Files.exists(Path.of(".dep.compile")) && !ignoreDepfiles) {
+			command.add("@.dep.compile");
+		} else {
+			var classpath = resolvePaths(Scope.COMPILE, Scope.PROVIDED).collect(joining(":"));
+			if (!classpath.isBlank()) {
+				command.add("-cp");
+				command.add(classpath);
+			}
 
-		var processors = resolvePaths(Scope.PROCESSOR).collect(joining(":"));
-		if (!processors.isBlank()) {
-			command.add("--processor-path");
-			command.add(processors);
-			command.add("-s");
-			command.add(Config.outputGeneratedDir().toString());
-		}
+			var processors = resolvePaths(Scope.PROCESSOR).collect(joining(":"));
+			if (!processors.isBlank()) {
+				command.add("--processor-path");
+				command.add(processors);
+				command.add("-s");
+				command.add(Config.outputGeneratedDir().toString());
+			}
 
-		command.add("-d");
-		command.add(Config.outputClassesDir().toString());
+			command.add("-d");
+			command.add(Config.outputClassesDir().toString());
+		}
 
 		Paths.allSourceFiles().map(Path::toString).forEach(command::add);
 

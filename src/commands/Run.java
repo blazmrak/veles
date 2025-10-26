@@ -2,6 +2,7 @@ package commands;
 
 import static common.DependencyResolution.resolvePaths;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.WatchEvent;
 import java.util.ArrayList;
@@ -36,17 +37,24 @@ public class Run implements Runnable {
 	)
 	String entrypoint;
 
+	@Option(names = { "-X", "--ignore-depfiles" }, description = { "Ignore .dep files" })
+	boolean ignoreDepfiles;
+
 	@Parameters
 	List<String> args = Collections.emptyList();
 
 	public void run() {
 		var command = new ArrayList<String>();
 		command.add("java");
-		var classpath = resolvePaths(Scope.COMPILE, Scope.RUNTIME, Scope.PROVIDED)
-			.collect(Collectors.joining(":"));
-		if (!classpath.isBlank()) {
-			command.add("-cp");
-			command.add(classpath);
+		if (Files.exists(Path.of(".dep.nocomp")) && !ignoreDepfiles) {
+			command.add("@.dep.nocomp");
+		} else {
+			var classpath = resolvePaths(Scope.COMPILE, Scope.RUNTIME, Scope.PROVIDED)
+				.collect(Collectors.joining(":"));
+			if (!classpath.isBlank()) {
+				command.add("-cp");
+				command.add(classpath);
+			}
 		}
 		if (Config.isPreviewEnabled()) {
 			command.add("--enable-preview");
