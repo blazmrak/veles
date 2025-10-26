@@ -121,6 +121,12 @@
         {
           "name": "save",
           "parameterTypes": []
+        },
+        {
+          "name": "save",
+          "parameterTypes": [
+            "boolean"
+          ]
         }
       ]
     },
@@ -217,6 +223,27 @@
       "methods": [
         {
           "name": "isVirtual",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "java.lang.reflect.Executable",
+      "methods": [
+        {
+          "name": "getParameters",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "java.lang.reflect.Method"
+    },
+    {
+      "type": "java.lang.reflect.Parameter",
+      "methods": [
+        {
+          "name": "getName",
           "parameterTypes": []
         }
       ]
