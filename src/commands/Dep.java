@@ -40,13 +40,9 @@ public class Dep implements Runnable {
 	 */
 	@Command(name = "save", description = "Saves dependencies for use with JDK via @ option")
 	public void save() {
+		// save compile time file
 		var compileDeps = resolvePaths(Scope.COMPILE, Scope.PROVIDED).collect(joining(":"));
-		var runtimeDeps = resolvePaths(Scope.COMPILE, Scope.RUNTIME).collect(joining(":"))
-			+ ":target/classes";
-		var nocompDeps = resolvePaths(Scope.COMPILE, Scope.PROVIDED, Scope.RUNTIME)
-			.collect(joining(":"));
 		var annotationProcessors = resolvePaths(Scope.PROCESSOR).collect(joining(":"));
-
 		var compileFile = new StringBuilder();
 		compileFile.append("-d\n");
 		compileFile.append("target/classes\n");
@@ -64,6 +60,9 @@ public class Dep implements Runnable {
 		} catch (Exception e) {
 		}
 
+		// save runtime time file
+		var runtimeDeps = resolvePaths(Scope.COMPILE, Scope.RUNTIME).collect(joining(":"))
+			+ ":target/classes";
 		var runtimeFile = new StringBuilder();
 		if (runtimeDeps.length() > 0) {
 			runtimeFile.append("-cp\n");
@@ -76,6 +75,9 @@ public class Dep implements Runnable {
 			}
 		}
 
+		// save nocomp time file
+		var nocompDeps = resolvePaths(Scope.COMPILE, Scope.PROVIDED, Scope.RUNTIME)
+			.collect(joining(":"));
 		var nocompFile = new StringBuilder();
 		if (runtimeDeps.length() > 0) {
 			nocompFile.append("-cp\n");
