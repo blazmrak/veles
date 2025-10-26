@@ -144,20 +144,7 @@ public class Compile implements Runnable {
 
 		// materialize libs, because docker cannot copy from outside the build context
 		var libs = Config.outputDir().resolve("libs");
-		try (var files = Files.walk(libs)) {
-			files.forEach(f -> {
-				if (Files.isSymbolicLink(f)) {
-					try {
-						var p = Files.readSymbolicLink(f);
-						Files.copy(p, f, StandardCopyOption.REPLACE_EXISTING);
-					} catch (IOException e) {
-						throw new RuntimeException(e);
-					}
-				}
-			});
-		} catch (Exception e) {
-			throw new RuntimeException("Failed to derefrence libs", e);
-		}
+		FilesUtil.materializeAllInside(libs);
 
 		var command = new ArrayList<String>();
 		command.add("docker");

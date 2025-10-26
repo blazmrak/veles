@@ -115,6 +115,10 @@
       "allDeclaredFields": true,
       "methods": [
         {
+          "name": "materialize",
+          "parameterTypes": []
+        },
+        {
           "name": "save",
           "parameterTypes": []
         }

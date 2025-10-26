@@ -1,6 +1,6 @@
 package commands;
 
-import static common.DependencyResolution.resolvePaths;
+import static common.DependencyResolution.resolve;
 import static java.util.stream.Collectors.joining;
 
 import java.io.IOException;
@@ -8,9 +8,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
+import org.eclipse.aether.artifact.Artifact;
 import org.jline.terminal.TerminalBuilder;
 
 import commands.widgets.MavenSearchWidget;
+import common.FilesUtil;
 import config.Config;
 import config.ConfigDoc.ConfDependency;
 import config.ConfigDoc.ConfDependency.Scope;
@@ -19,6 +21,7 @@ import picocli.CommandLine.Parameters;
 
 @Command(name = "dep")
 public class Dep implements Runnable {
+	private final Path depsPath = Path.of("target", "deps");
 
 	@Parameters
 	List<String> args;
@@ -39,15 +42,22 @@ public class Dep implements Runnable {
 	}
 
 	/**
-	 * Saves dependencies into a file to use with JDK via @ option.
+	 * Saves dependencies into a file to use with JDK via @ option. It generates .dep files in root
+	 * directory and saves links to dependencies inside target/deps. These links can be materialized
+	 * using the "dep materialize" command.
+	 * 
+	 * @throws IOException
 	 *
 	 * @example java @.dep.nocomp Script.java
 	 */
 	@Command(name = "save", description = "Saves dependencies for use with JDK via @ option")
-	public void save() {
+	public void save() throws IOException {
+		Files.createDirectories(depsPath);
+
 		// save compile time file
-		var compileDeps = resolvePaths(Scope.COMPILE, Scope.PROVIDED).collect(joining(":"));
-		var annotationProcessors = resolvePaths(Scope.PROCESSOR).collect(joining(":"));
+		var compileDeps = resolve(Scope.COMPILE, Scope.PROVIDED).map(this::linkLib)
+			.collect(joining(":"));
+		var annotationProcessors = resolve(Scope.PROCESSOR).map(this::linkLib).collect(joining(":"));
 		var compileFile = new StringBuilder();
 		compileFile.append("-d\n");
 		compileFile.append("target/classes\n");
@@ -66,8 +76,8 @@ public class Dep implements Runnable {
 		}
 
 		// save runtime time file
-		var runtimeDeps = resolvePaths(Scope.COMPILE, Scope.RUNTIME).collect(joining(":"))
-			+ ":target/classes";
+		var runtimeDeps = resolve(Scope.COMPILE, Scope.PROVIDED).map(this::linkLib)
+			.collect(joining(":")) + ":" + Config.outputClassesDir().toString();
 		var runtimeFile = new StringBuilder();
 		if (runtimeDeps.length() > 0) {
 			runtimeFile.append("-cp\n");
@@ -81,7 +91,7 @@ public class Dep implements Runnable {
 		}
 
 		// save nocomp time file
-		var nocompDeps = resolvePaths(Scope.COMPILE, Scope.PROVIDED, Scope.RUNTIME)
+		var nocompDeps = resolve(Scope.COMPILE, Scope.PROVIDED, Scope.RUNTIME).map(this::linkLib)
 			.collect(joining(":"));
 		var nocompFile = new StringBuilder();
 		if (runtimeDeps.length() > 0) {
@@ -93,6 +103,27 @@ public class Dep implements Runnable {
 				Files.writeString(Path.of(".dep.nocomp"), nocompFile.toString());
 			} catch (Exception e) {
 			}
+		}
+	}
+
+	@Command(name = "materialize", description = "Replaces links inside target/libs with actual jars")
+	public void materialize() {
+		FilesUtil.materializeAllInside(depsPath);
+	}
+
+	private String linkLib(Artifact artifact) {
+		Path target = Path.of(artifact.getFile().getAbsolutePath());
+		Path link = depsPath.resolve(target.getFileName());
+		try {
+			if (Files.exists(link) && !Files.isSymbolicLink(link)) {
+				Files.delete(link);
+			}
+			if (!Files.exists(link)) {
+				Files.createSymbolicLink(link, target);
+			}
+			return link.toString();
+		} catch (IOException e) {
+			throw new RuntimeException(e);
 		}
 	}
 }
