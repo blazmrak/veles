@@ -1,6 +1,10 @@
 package commands;
 
 import static common.DependencyResolution.resolve;
+import static java.nio.file.Files.exists;
+import static java.nio.file.Files.isRegularFile;
+import static java.nio.file.Files.isSymbolicLink;
+import static java.nio.file.Files.writeString;
 import static java.util.stream.Collectors.joining;
 
 import java.io.IOException;
@@ -17,11 +21,15 @@ import config.Config;
 import config.ConfigDoc.ConfDependency;
 import config.ConfigDoc.ConfDependency.Scope;
 import picocli.CommandLine.Command;
+import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 @Command(name = "dep")
 public class Dep implements Runnable {
 	private final Path depsPath = Path.of("target", "deps");
+
+	@Option(names = { "-m", "--materialize" })
+	boolean materialize;
 
 	@Parameters
 	List<String> args;
@@ -31,10 +39,10 @@ public class Dep implements Runnable {
 			var terminal = TerminalBuilder.builder().build();
 			var gav = new MavenSearchWidget(terminal).search();
 			Config.addDependency(ConfDependency.parse(gav.toString()));
-			if (Files.exists(Path.of(".dep.compile"))
-				|| Files.exists(Path.of(".dep.runtime"))
-				|| Files.exists(Path.of(".dep.nocomp"))) {
-				this.save();
+			if (exists(Path.of(".dep.compile"))
+				|| exists(Path.of(".dep.runtime"))
+				|| exists(Path.of(".dep.nocomp"))) {
+				this.save(materialize);
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -51,7 +59,9 @@ public class Dep implements Runnable {
 	 * @example java @.dep.nocomp Script.java
 	 */
 	@Command(name = "save", description = "Saves dependencies for use with JDK via @ option")
-	public void save() throws IOException {
+	public void save(@Option(names = { "-m", "--materialize" }) boolean materialize)
+		throws IOException {
+		this.materialize = materialize;
 		Files.createDirectories(depsPath);
 
 		// save compile time file
@@ -71,7 +81,7 @@ public class Dep implements Runnable {
 			compileFile.append("-proc:full");
 		}
 		try {
-			Files.writeString(Path.of(".dep.compile"), compileFile.toString());
+			writeString(Path.of(".dep.compile"), compileFile.toString());
 		} catch (Exception e) {
 		}
 
@@ -85,7 +95,7 @@ public class Dep implements Runnable {
 		}
 		if (runtimeFile.length() > 0) {
 			try {
-				Files.writeString(Path.of(".dep.runtime"), runtimeFile.toString());
+				writeString(Path.of(".dep.runtime"), runtimeFile.toString());
 			} catch (Exception e) {
 			}
 		}
@@ -100,26 +110,30 @@ public class Dep implements Runnable {
 		}
 		if (nocompFile.length() > 0) {
 			try {
-				Files.writeString(Path.of(".dep.nocomp"), nocompFile.toString());
+				writeString(Path.of(".dep.nocomp"), nocompFile.toString());
 			} catch (Exception e) {
 			}
 		}
-	}
-
-	@Command(name = "materialize", description = "Replaces links inside target/libs with actual jars")
-	public void materialize() {
-		FilesUtil.materializeAllInside(depsPath);
 	}
 
 	private String linkLib(Artifact artifact) {
 		Path target = Path.of(artifact.getFile().getAbsolutePath());
 		Path link = depsPath.resolve(target.getFileName());
 		try {
-			if (Files.exists(link) && !Files.isSymbolicLink(link)) {
-				Files.delete(link);
-			}
-			if (!Files.exists(link)) {
-				Files.createSymbolicLink(link, target);
+			if (!materialize) {
+				if (exists(link) && !isSymbolicLink(link)) {
+					Files.delete(link);
+				}
+				if (!exists(link)) {
+					Files.createSymbolicLink(link, target);
+				}
+			} else {
+				if (exists(link) && isSymbolicLink(link)) {
+					Files.delete(link);
+				}
+				if (!exists(link)) {
+					Files.copy(target, link);
+				}
 			}
 			return link.toString();
 		} catch (IOException e) {
