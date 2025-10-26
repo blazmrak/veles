@@ -14,6 +14,7 @@ import java.util.Objects;
 import java.util.stream.Stream;
 
 import common.FilesUtil;
+import common.JdkResolver;
 import common.Paths;
 import common.Zip;
 import config.Config;
@@ -175,7 +176,7 @@ public class Compile implements Runnable {
 		var classpath = resolvePaths(Scope.COMPILE, Scope.PROVIDED, Scope.RUNTIME).collect(joining(":"))
 			+ ":" + Config.outputClassesDir();
 		var traceCmd = new ArrayList<String>();
-		traceCmd.add(getGraalBin() + "java");
+		traceCmd.add(JdkResolver.graalJava().toString());
 		traceCmd.add(
 			"-agentlib:native-image-agent=" + "config-merge-dir=" + Config.sourceDir(entrypoint)
 				+ "/META-INF/native-image/" + reachabilityDir
@@ -202,7 +203,7 @@ public class Compile implements Runnable {
 		List<String> command = null;
 		if (doUber) {
 			command = List.of(
-				getGraalBin() + "native-image",
+				JdkResolver.nativeImage().toString(),
 				"-jar",
 				Config.outputDir().resolve(Config.outputJavaUberJarName()).toString(),
 				"-o",
@@ -211,7 +212,7 @@ public class Compile implements Runnable {
 			);
 		} else {
 			command = List.of(
-				getGraalBin() + "native-image",
+				JdkResolver.nativeImage().toString(),
 				"-cp",
 				resolvePaths(Scope.COMPILE, Scope.PROVIDED, Scope.RUNTIME).collect(joining(":")) + ":"
 					+ Config.outputClassesDir(),
@@ -316,7 +317,7 @@ public class Compile implements Runnable {
 		copyResources(Config.sourceDir(entrypoint), Config.outputClassesDir());
 
 		var command = new ArrayList<String>();
-		command.add("javac");
+		command.add(JdkResolver.javac().toString());
 		command.add("--source-path");
 		command.add(Config.sourceDir(entrypoint).toString());
 		if (Config.getRelease() != 0) {
@@ -363,29 +364,6 @@ public class Compile implements Runnable {
 			zip.concat(Config.outputDir().resolve(Config.outputJavaJarName()));
 			resolvePaths(Scope.COMPILE, Scope.RUNTIME).map(Path::of).forEach(zip::concat);
 		}
-	}
-
-	private String getGraalBin() {
-		String homeEnv = System.getenv("GRAALVM_HOME");
-		Path path;
-		if (homeEnv != null) {
-			path = Path.of(homeEnv, "bin");
-		} else {
-			path = Path.of(
-				System.getenv("HOME"),
-				".sdkman",
-				"candidates",
-				"java",
-				Config.graalVersion() + "-graal",
-				"bin"
-			);
-		}
-
-		if (Files.exists(path) && Files.isDirectory(path)) {
-			return path.toAbsolutePath().toString() + "/";
-		}
-
-		return "";
 	}
 
 	private Stream<String> symlinkLibs(Path outputDir, Stream<String> libPaths) {

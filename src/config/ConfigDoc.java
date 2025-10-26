@@ -50,6 +50,7 @@ public class ConfigDoc {
 	}
 
 	public static class Settings {
+		public String jdk;
 		public Project project = new Project();
 		public Compiler compiler = new Compiler();
 		public Format format = new Format();
@@ -74,13 +75,19 @@ public class ConfigDoc {
 				if (formatVal != null && formatVal instanceof Map format) {
 					target.format = Format.parse(format);
 				}
+				var jdkVal = m.get("jdk");
+				if (jdkVal != null && jdkVal instanceof String val) {
+					target.jdk = val;
+				} else if (jdkVal != null && jdkVal instanceof Number val) {
+					target.jdk = val.toString();
+				}
 			}
 
 			return target;
 		}
 
 		public String toString() {
-			return "{" + "project: " + project + ", " + "compiler: " + compiler + "}";
+			return "{" + "jdk: " + jdk + ", project: " + project + ", compiler: " + compiler + "}";
 		}
 
 		public static class Format {
@@ -138,6 +145,7 @@ public class ConfigDoc {
 				return target;
 			}
 
+			@Override
 			public String toString() {
 				return "{" + "src: " + src + ", " + "test: " + test + "}";
 			}
@@ -184,7 +192,7 @@ public class ConfigDoc {
 					if (graalVersionVal != null && graalVersionVal instanceof String val) {
 						target.graalVersion = val;
 					} else if (graalVersionVal != null && graalVersionVal instanceof Number val) {
-						target.graalVersion = String.valueOf(val);
+						target.graalVersion = val.toString();
 					}
 				}
 

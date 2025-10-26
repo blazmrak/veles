@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import common.JdkResolver;
 import common.Paths;
 import config.Config;
 import config.ConfigDoc.ConfDependency.Scope;
@@ -45,7 +46,7 @@ public class Run implements Runnable {
 
 	public void run() {
 		var command = new ArrayList<String>();
-		command.add("java");
+		command.add(JdkResolver.java().toString());
 		if (Files.exists(Path.of(".dep.nocomp")) && !ignoreDepfiles) {
 			command.add("@.dep.nocomp");
 		} else {
@@ -55,9 +56,13 @@ public class Run implements Runnable {
 				command.add("-cp");
 				command.add(classpath);
 			}
-		}
-		if (Config.isPreviewEnabled()) {
-			command.add("--enable-preview");
+			if (!classpath.isBlank()) {
+				command.add("-cp");
+				command.add(classpath);
+			}
+			if (Config.isPreviewEnabled()) {
+				command.add("--enable-preview");
+			}
 		}
 		command.add(Config.getEntrypoint(this.entrypoint).filePath().toString());
 		command.addAll(args);
