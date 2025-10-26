@@ -95,7 +95,7 @@ public class Config {
 	}
 
 	public static String outputNativeExecutableName() {
-		return "app";
+		return getArtifactId();
 	}
 
 	public static String outputJavaJarName() {
