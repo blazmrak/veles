@@ -131,6 +131,8 @@ jobs:
               --generate-notes
           else
             echo "Creating prerelease..."
+            gh release delete nightly --yes || true
+            git push origin :nightly || true
             gh release create "${{ steps.rel.outputs.tag_name }}" ./release-artifacts/**/* \
               --title "Latest development build" \
               --generate-notes \
