@@ -142,7 +142,6 @@ public class Lsp implements Runnable {
 			defaultPrefs.put(k, v);
 		});
 
-		defaultPrefs.put("org.eclipse.jdt.core.compiler.release", String.valueOf(Config.getRelease()));
 		defaultPrefs
 			.put("org.eclipse.jdt.core.formatter.lineSplit", String.valueOf(Config.getLineWidth()));
 		defaultPrefs.put(
@@ -151,11 +150,24 @@ public class Lsp implements Runnable {
 		);
 		defaultPrefs
 			.put("org.eclipse.jdt.core.formatter.tabulation.char", Config.getIndent().toString());
+		defaultPrefs.put(
+			"org.eclipse.jdt.core.compiler.problem.enablePreviewFeatures",
+			Config.isPreviewEnabled()
+				? "enabled"
+				: "disabled"
+		);
+		defaultPrefs
+			.put("org.eclipse.jdt.core.formatter.tabulation.char", Config.getIndent().toString());
 
 		var newPrefs = defaultPrefs.entrySet()
 			.stream()
 			.map(s -> s.getKey() + "=" + s.getValue())
 			.collect(Collectors.joining("\n"));
+
+		if (Config.getRelease() == 0) {
+			defaultPrefs.remove("org.eclipse.jdt.core.compiler.source");
+			defaultPrefs.remove("org.eclipse.jdt.core.compiler.target");
+		}
 
 		write(CORE_PREFS_PATH, newPrefs);
 	}
@@ -185,8 +197,8 @@ public class Lsp implements Runnable {
 		public String xml() {
 			if (sources == null) {
 				return """
-					\t<classpathentry kind="lib\" path=\"%s\"/>"""
-					.formatted(binary.getFile().getAbsolutePath());
+					\t<classpathentry kind="lib\" path=\"%s\"/>
+					""".formatted(binary.getFile().getAbsolutePath());
 			} else if (documentation == null) {
 				return new StringBuilder("""
 					\t<classpathentry kind="lib" path="%s" sourcepath="%s"/>
@@ -249,7 +261,8 @@ public class Lsp implements Runnable {
 		var newMap = new LinkedHashMap<String, String>();
 		newMap.put("eclipse.preferences.version", "1");
 		if (Config.getRelease() > 0) {
-			newMap.put("org.eclipse.jdt.core.compiler.release", String.valueOf(Config.getRelease()));
+			newMap.put("org.eclipse.jdt.core.compiler.source", String.valueOf(Config.getRelease()));
+			newMap.put("org.eclipse.jdt.core.compiler.target", String.valueOf(Config.getRelease()));
 		}
 		newMap.put(
 			"org.eclipse.jdt.core.compiler.problem.enablePreviewFeatures",
@@ -261,9 +274,11 @@ public class Lsp implements Runnable {
 		newMap.put("org.eclipse.jdt.core.compiler.problem.reportPreviewFeatures", "ignore");
 		newMap.put("org.eclipse.jdt.core.compiler.processAnnotations", "enabled");
 
+		newMap.put("org.eclipse.jdt.core.formatter.lineSplit", String.valueOf(Config.getLineWidth()));
 		newMap.put("org.eclipse.jdt.core.formatter.profile", "veles");
 		newMap.put("org.eclipse.jdt.core.formatter.profile.version", "12");
 		newMap.put("org.eclipse.jdt.core.formatter.use_on_save", "enabled");
+		newMap.put("org.eclipse.jdt.core.formatter.tabulation.char", "tab");
 		newMap.put("org.eclipse.jdt.core.formatter.tabulation.size", "2");
 		newMap.put("org.eclipse.jdt.core.formatter.indentation.size", "2");
 
@@ -397,6 +412,10 @@ public class Lsp implements Runnable {
 
 		newMap.put("org.eclipse.jdt.core.formatter.keep_guardian_clause_on_one_line", "true");
 
+		newMap.put(
+			"org.eclipse.jdt.core.formatter.comment.line_length",
+			String.valueOf(Config.getLineWidth())
+		);
 		newMap.put("org.eclipse.jdt.core.formatter.comment.format_line_comments", "true");
 		newMap.put("org.eclipse.jdt.core.formatter.comment.format_block_comments", "true");
 		newMap.put("org.eclipse.jdt.core.formatter.comment.format_javadoc_comments", "true");

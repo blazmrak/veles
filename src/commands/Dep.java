@@ -2,7 +2,6 @@ package commands;
 
 import static common.DependencyResolution.resolve;
 import static java.nio.file.Files.exists;
-import static java.nio.file.Files.isRegularFile;
 import static java.nio.file.Files.isSymbolicLink;
 import static java.nio.file.Files.writeString;
 import static java.util.stream.Collectors.joining;
@@ -16,7 +15,6 @@ import org.eclipse.aether.artifact.Artifact;
 import org.jline.terminal.TerminalBuilder;
 
 import commands.widgets.MavenSearchWidget;
-import common.FilesUtil;
 import config.Config;
 import config.ConfigDoc.ConfDependency;
 import config.ConfigDoc.ConfDependency.Scope;
