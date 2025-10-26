@@ -68,7 +68,7 @@ public class Dep implements Runnable {
 		var annotationProcessors = resolve(Scope.PROCESSOR).map(this::linkLib).collect(joining(":"));
 		var compileFile = new StringBuilder();
 		compileFile.append("-d\n");
-		compileFile.append("target/classes\n");
+		compileFile.append(Config.outputClassesDir().toString() + "\n");
 		if (compileDeps.length() > 0) {
 			compileFile.append("-cp\n");
 			compileFile.append(compileDeps + "\n");
