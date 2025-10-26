@@ -12,6 +12,25 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 public class FilesUtil {
+	public static void materializeAllInside(Path dir) {
+		try (var files = Files.walk(dir)) {
+			files.forEach(FilesUtil::materializeLink);
+		} catch (Exception e) {
+			throw new RuntimeException("Failed to derefrence libs", e);
+		}
+	}
+
+	private static void materializeLink(Path file) {
+		if (Files.isSymbolicLink(file)) {
+			try {
+				var p = Files.readSymbolicLink(file);
+				Files.copy(p, file, StandardCopyOption.REPLACE_EXISTING);
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+		}
+	}
+
 	public static void copyDir(Path source, Path target) {
 		copyDir(source, target, _ -> true);
 	}

@@ -112,7 +112,23 @@
     },
     {
       "type": "commands.Dep",
-      "allDeclaredFields": true
+      "allDeclaredFields": true,
+      "methods": [
+        {
+          "name": "materialize",
+          "parameterTypes": []
+        },
+        {
+          "name": "save",
+          "parameterTypes": []
+        },
+        {
+          "name": "save",
+          "parameterTypes": [
+            "boolean"
+          ]
+        }
+      ]
     },
     {
       "type": "commands.Dev",
@@ -207,6 +223,27 @@
       "methods": [
         {
           "name": "isVirtual",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "java.lang.reflect.Executable",
+      "methods": [
+        {
+          "name": "getParameters",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "java.lang.reflect.Method"
+    },
+    {
+      "type": "java.lang.reflect.Parameter",
+      "methods": [
+        {
+          "name": "getName",
           "parameterTypes": []
         }
       ]

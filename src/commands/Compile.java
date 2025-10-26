@@ -66,6 +66,9 @@ public class Compile implements Runnable {
 	@Option(names = { "-e", "--entrypoint" }, description = { "Entrypoint for the java program" })
 	String entrypoint;
 
+	@Option(names = { "-X", "--ignore-depfiles" }, description = { "Ignore .dep files" })
+	boolean ignoreDepfiles;
+
 	@Parameters
 	List<String> args = Collections.emptyList();
 
@@ -141,20 +144,7 @@ public class Compile implements Runnable {
 
 		// materialize libs, because docker cannot copy from outside the build context
 		var libs = Config.outputDir().resolve("libs");
-		try (var files = Files.walk(libs)) {
-			files.forEach(f -> {
-				if (Files.isSymbolicLink(f)) {
-					try {
-						var p = Files.readSymbolicLink(f);
-						Files.copy(p, f, StandardCopyOption.REPLACE_EXISTING);
-					} catch (IOException e) {
-						throw new RuntimeException(e);
-					}
-				}
-			});
-		} catch (Exception e) {
-			throw new RuntimeException("Failed to derefrence libs", e);
-		}
+		FilesUtil.materializeAllInside(libs);
 
 		var command = new ArrayList<String>();
 		command.add("docker");
@@ -338,22 +328,26 @@ public class Compile implements Runnable {
 			command.add("--enable-preview");
 		}
 
-		var classpath = resolvePaths(Scope.COMPILE, Scope.PROVIDED).collect(joining(":"));
-		if (!classpath.isBlank()) {
-			command.add("-cp");
-			command.add(classpath);
-		}
+		if (Files.exists(Path.of(".dep.compile")) && !ignoreDepfiles) {
+			command.add("@.dep.compile");
+		} else {
+			var classpath = resolvePaths(Scope.COMPILE, Scope.PROVIDED).collect(joining(":"));
+			if (!classpath.isBlank()) {
+				command.add("-cp");
+				command.add(classpath);
+			}
 
-		var processors = resolvePaths(Scope.PROCESSOR).collect(joining(":"));
-		if (!processors.isBlank()) {
-			command.add("--processor-path");
-			command.add(processors);
-			command.add("-s");
-			command.add(Config.outputGeneratedDir().toString());
-		}
+			var processors = resolvePaths(Scope.PROCESSOR).collect(joining(":"));
+			if (!processors.isBlank()) {
+				command.add("--processor-path");
+				command.add(processors);
+				command.add("-s");
+				command.add(Config.outputGeneratedDir().toString());
+			}
 
-		command.add("-d");
-		command.add(Config.outputClassesDir().toString());
+			command.add("-d");
+			command.add(Config.outputClassesDir().toString());
+		}
 
 		Paths.allSourceFiles().map(Path::toString).forEach(command::add);
 

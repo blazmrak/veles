@@ -2,6 +2,8 @@ package commands;
 
 import static common.DependencyResolution.resolvePaths;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -33,6 +35,9 @@ public class Start implements Runnable {
 
 	@Option(names = { "-U", "--exploded" }, description = { "Run the exploded directory" })
 	public boolean doExploded;
+
+	@Option(names = { "-X", "--ignore-depfiles" }, description = { "Ignore .dep files" })
+	boolean ignoreDepfiles;
 
 	@ArgGroup(exclusive = true)
 	public AOTGroup aot = new AOTGroup();
@@ -101,6 +106,8 @@ public class Start implements Runnable {
 				if (doExploded) {
 					command.add("-cp");
 					command.add(Config.outputDir().resolve("exploded").toString());
+				} else if (Files.exists(Path.of(".dep.runtime")) && !ignoreDepfiles) {
+					command.add("@.dep.runtime");
 				} else {
 					command.add("-cp");
 					command.add(
