@@ -95,14 +95,14 @@ jobs:
           native-image -jar ./artifact/app-uber.jar -o target/veles
 
       - name: Package executable UNIX
-        if: matrix.os != "windows"
+        if: matrix.os != 'windows'
         run: |
           cd target
           tar -czf ../veles-${{ matrix.os }}-${{ matrix.arch }}.tar.gz veles
           cd ..
 
       - name: Package executable WIN
-        if: matrix.os == "windows"
+        if: matrix.os == 'windows'
         run: |
           cd target
           tar -czf ../veles-${{ matrix.os }}-${{ matrix.arch }}.tar.gz veles.exe
