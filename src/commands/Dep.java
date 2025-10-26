@@ -52,7 +52,7 @@ public class Dep implements Runnable {
 	/**
 	 * Saves dependencies into a file to use with JDK via @ option. It generates .dep files in root
 	 * directory and saves links to dependencies inside target/deps. These links can be materialized
-	 * using the "dep materialize" command.
+	 * using the "--materialize" flag.
 	 * 
 	 * @throws IOException
 	 *
