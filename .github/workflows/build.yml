@@ -94,14 +94,18 @@ jobs:
           mkdir target
           native-image -jar ./artifact/app-uber.jar -o target/veles
 
-      - name: Package executable (tar.gz)
+      - name: Package executable UNIX
+        if: matrix.os != "windows"
         run: |
           cd target
-          if [[ "${{ matrix.os }}" == "windows" ]]; then
-            tar -czf ../veles-${{ matrix.os }}-${{ matrix.arch }}.tar.gz veles.exe
-          else
-            tar -czf ../veles-${{ matrix.os }}-${{ matrix.arch }}.tar.gz veles
-          fi
+          tar -czf ../veles-${{ matrix.os }}-${{ matrix.arch }}.tar.gz veles
+          cd ..
+
+      - name: Package executable WIN
+        if: matrix.os == "windows"
+        run: |
+          cd target
+          tar -czf ../veles-${{ matrix.os }}-${{ matrix.arch }}.tar.gz veles.exe
           cd ..
 
       - name: Upload binary
