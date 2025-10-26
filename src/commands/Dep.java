@@ -28,6 +28,11 @@ public class Dep implements Runnable {
 			var terminal = TerminalBuilder.builder().build();
 			var gav = new MavenSearchWidget(terminal).search();
 			Config.addDependency(ConfDependency.parse(gav.toString()));
+			if (Files.exists(Path.of(".dep.compile"))
+				|| Files.exists(Path.of(".dep.runtime"))
+				|| Files.exists(Path.of(".dep.nocomp"))) {
+				this.save();
+			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
