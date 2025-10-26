@@ -112,7 +112,13 @@
     },
     {
       "type": "commands.Dep",
-      "allDeclaredFields": true
+      "allDeclaredFields": true,
+      "methods": [
+        {
+          "name": "save",
+          "parameterTypes": []
+        }
+      ]
     },
     {
       "type": "commands.Dev",
