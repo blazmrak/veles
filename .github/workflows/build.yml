@@ -92,13 +92,23 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           mkdir target
-          native-image -jar ./artifact/app-uber.jar -o target/veles-${{ matrix.os }}-${{ matrix.arch }}
+          native-image -jar ./artifact/app-uber.jar -o target/veles
+
+      - name: Package executable (tar.gz)
+        run: |
+          cd target
+          if [[ "${{ matrix.os }}" == "windows" ]]; then
+            tar -czf ../veles-${{ matrix.os }}-${{ matrix.arch }}.tar.gz veles.exe
+          else
+            tar -czf ../veles-${{ matrix.os }}-${{ matrix.arch }}.tar.gz veles
+          fi
+          cd ..
 
       - name: Upload binary
         uses: actions/upload-artifact@v4
         with:
           name: veles-${{ matrix.os }}-${{ matrix.arch }}
-          path: target/veles*
+          path: veles-${{ matrix.os }}-${{ matrix.arch }}.tar.gz
 
   release:
     name: Release
