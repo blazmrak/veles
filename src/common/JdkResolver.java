@@ -8,9 +8,11 @@ import config.Config;
 
 public class JdkResolver {
 	private static final Path miseHome = Path.of(System.getProperty("user.home"))
-		.resolve(".local/share/mise/installs/java");
+		.resolve(".local", "share", "mise", "installs", "java");
+	private static final Path miseHomeWindows = Path.of(System.getProperty("user.home"))
+		.resolve("AppData", "Local", "mise", "installs", "java");
 	private static final Path sdkmanHome = Path.of(System.getProperty("user.home"))
-		.resolve(".sdkman/candidates/java");
+		.resolve(".sdkman", "candidates", "java");
 
 	public static Path java() {
 		var home = jdkHome();
@@ -110,7 +112,7 @@ public class JdkResolver {
 		}
 
 		if (Os.isWindows()) {
-			var misePath = resolveMise(jdk);
+			var misePath = resolveMiseWindows(jdk);
 			if (misePath != null) {
 				return misePath;
 			} else {
@@ -140,6 +142,15 @@ public class JdkResolver {
 		} catch (IOException e) {
 			return null;
 		}
+	}
+
+	private static Path resolveMiseWindows(Jdk jdk) {
+		var path = miseHomeWindows.resolve(jdk.toMise());
+		if (!Files.exists(path)) {
+			return null;
+		}
+
+		return path;
 	}
 
 	private static Path resolveMise(Jdk jdk) {
