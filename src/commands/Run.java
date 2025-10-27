@@ -56,13 +56,9 @@ public class Run implements Runnable {
 				command.add("-cp");
 				command.add(classpath);
 			}
-			if (!classpath.isBlank()) {
-				command.add("-cp");
-				command.add(classpath);
-			}
-			if (Config.isPreviewEnabled()) {
-				command.add("--enable-preview");
-			}
+		}
+		if (Config.isPreviewEnabled()) {
+			command.add("--enable-preview");
 		}
 		command.add(Config.getEntrypoint(this.entrypoint).filePath().toString());
 		command.addAll(args);
