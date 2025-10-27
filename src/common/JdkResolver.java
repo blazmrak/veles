@@ -3,6 +3,10 @@ package common;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.function.Function;
 
 import config.Config;
 
@@ -14,112 +18,165 @@ public class JdkResolver {
 	private static final Path sdkmanHome = Path.of(System.getProperty("user.home"))
 		.resolve(".sdkman", "candidates", "java");
 
-	public static Path java() {
-		var home = jdkHome();
+	private static Path jdkHome = null;
+	private static Path java = null;
+	private static Path javac = null;
+	private static Path nativeImage = null;
+	private static Path graalJava = null;
+	private static Path graalHome = null;
 
-		if (home != null) {
-			return home.resolve("bin", "java");
+	// TODO: When stable values drop, simplify this
+	public static Path java() {
+		if (java == null) {
+			var home = jdkHome();
+			if (home != null) {
+				java = home.resolve("bin", "java");
+			} else {
+				java = Path.of("java");
+			}
 		}
-		return Path.of("java");
+
+		return java;
 	}
 
 	public static Path javac() {
-		var home = jdkHome();
+		if (javac == null) {
+			var home = jdkHome();
 
-		if (home != null) {
-			return home.resolve("bin", "javac");
+			if (home != null) {
+				javac = home.resolve("bin", "javac");
+			} else {
+				javac = Path.of("javac");
+			}
 		}
-		return Path.of("javac");
+
+		return javac;
 	}
 
 	public static Path nativeImage() {
-		var home = graalvmHome();
+		if (nativeImage == null) {
+			var home = graalvmHome();
 
-		if (home != null) {
-			return home.resolve("bin", "native-image");
+			if (home != null) {
+				nativeImage = home.resolve("bin", "native-image");
+			} else {
+				nativeImage = Path.of("native-image");
+			}
 		}
-		return Path.of("native-image");
+
+		return nativeImage;
 	}
 
 	public static Path graalJava() {
-		var home = graalvmHome();
+		if (graalJava == null) {
+			var home = graalvmHome();
 
-		if (home != null) {
-			return home.resolve("bin", "java");
+			if (home != null) {
+				graalJava = home.resolve("bin", "java");
+			} else {
+				graalJava = Path.of("java");
+			}
 		}
-		return Path.of("java");
+
+		return graalJava;
 	}
 
 	public static Path graalvmHome() {
-		String homeEnv = System.getenv("GRAALVM_HOME");
-		Path path;
-		if (homeEnv != null && !homeEnv.isBlank()) {
-			path = Path.of(homeEnv, "bin");
-		} else {
-			path = jdkHome(Jdk.parse(Config.graalVersion() + "-graal"));
-		}
-
-		if (Files.exists(path) && Files.isDirectory(path)) {
-			return path.toAbsolutePath();
-		}
-
-		return Path.of("");
-	}
-
-	public static Path jdkHome() {
-		var homePath = resolveSdkmanrc();
-		if (homePath != null) {
-			return homePath;
-		}
-
-		return jdkHome(Jdk.parse(Config.jdkVersion()));
-	}
-
-	private static Path jdkHome(Jdk jdk) {
-		var javaHome = System.getenv("JAVA_HOME");
-		if (jdk == null) {
-			if (javaHome != null && !javaHome.isBlank()) {
-				return Path.of(javaHome);
+		if (graalHome == null) {
+			Path path;
+			if (Config.graalVersion() != null) {
+				path = jdkHome(new Jdk(Config.graalVersion(), Distro.graal));
+			} else if (Config.jdkVersion() != null) {
+				path = jdkHome(new Jdk(Config.jdkVersion(), Distro.graal));
 			} else {
 				return null;
 			}
+
+			if (Files.exists(path) && Files.isDirectory(path)) {
+				graalHome = path.toAbsolutePath();
+			} else {
+				graalHome = Path.of("");
+			}
+		}
+
+		return graalHome;
+	}
+
+	public static Path jdkHome() {
+		if (jdkHome == null) {
+			var jdk = resolveRequiredJdkVersion();
+			jdkHome = jdkHome(jdk);
+		}
+
+		return jdkHome;
+	}
+
+	private static Jdk resolveRequiredJdkVersion() {
+		var jdk = resolveSdkmanrcVersion();
+		if (jdk != null) {
+			return jdk;
+		}
+
+		return Jdk.parse(Config.jdkVersion());
+	}
+
+	private static Path jdkHome(Jdk requiredJdk) {
+		if (requiredJdk == null) {
+			return javaHomeEnv();
 		}
 
 		if (Os.isMacos()) {
-			var sdkPath = resolveSdkman(jdk);
-			if (sdkPath != null) {
-				return sdkPath;
-			}
-			var misePath = resolveMise(jdk);
-			if (misePath != null) {
-				return misePath;
-			} else {
-				throw new IllegalArgumentException("Jdk version " + jdk.toString() + " is not installed");
-			}
+			return resolveJdk(
+				requiredJdk,
+				List.of(
+					JdkResolver::resolveJavaHome,
+					JdkResolver::resolveGraalvmHome,
+					JdkResolver::resolveSdkman,
+					JdkResolver::resolveMise
+				)
+			).orElseThrow(
+				() -> new IllegalArgumentException(
+					"Jdk version " + requiredJdk.toString() + " is not installed"
+				)
+			);
 		}
 
 		if (Os.isLinux()) {
-			var sdkPath = resolveSdkman(jdk);
-			if (sdkPath != null) {
-				return sdkPath;
-			}
-			var misePath = resolveMise(jdk);
-			if (misePath != null) {
-				return misePath;
-			} else {
-				throw new IllegalArgumentException("Jdk version " + jdk.toString() + " is not installed");
-			}
+			return resolveJdk(
+				requiredJdk,
+				List.of(
+					JdkResolver::resolveJavaHome,
+					JdkResolver::resolveGraalvmHome,
+					JdkResolver::resolveSdkman,
+					JdkResolver::resolveMise
+				)
+			).orElseThrow(
+				() -> new IllegalArgumentException(
+					"Jdk version " + requiredJdk.toString() + " is not installed"
+				)
+			);
 		}
 
 		if (Os.isWindows()) {
-			var misePath = resolveMiseWindows(jdk);
-			if (misePath != null) {
-				return misePath;
-			} else {
-				throw new IllegalArgumentException("Jdk version " + jdk.toString() + " is not installed");
-			}
+			return resolveJdk(
+				requiredJdk,
+				List.of(
+					JdkResolver::resolveJavaHome,
+					JdkResolver::resolveGraalvmHome,
+					JdkResolver::resolveMiseWindows
+				)
+			).orElseThrow(
+				() -> new IllegalArgumentException(
+					"Jdk version " + requiredJdk.toString() + " is not installed"
+				)
+			);
 		}
 
+		return javaHomeEnv();
+	}
+
+	private static Path graalvmHomeEnv() {
+		var javaHome = System.getenv("GRAALVM_HOME");
 		if (javaHome != null && !javaHome.isBlank()) {
 			return Path.of(javaHome);
 		} else {
@@ -127,7 +184,16 @@ public class JdkResolver {
 		}
 	}
 
-	private static Path resolveSdkmanrc() {
+	private static Path javaHomeEnv() {
+		var javaHome = System.getenv("JAVA_HOME");
+		if (javaHome != null && !javaHome.isBlank()) {
+			return Path.of(javaHome);
+		} else {
+			return null;
+		}
+	}
+
+	private static Jdk resolveSdkmanrcVersion() {
 		var rcPath = Path.of(".skdmanrc");
 		if (!Files.exists(rcPath)) {
 			return null;
@@ -136,7 +202,7 @@ public class JdkResolver {
 		try (var lines = Files.lines(rcPath)) {
 			return lines.filter(l -> l.startsWith("java="))
 				.map(l -> l.substring("java=".length() + 1).trim())
-				.map(SdkmanId::jdkHome)
+				.map(Jdk::parse)
 				.findAny()
 				.orElse(null);
 		} catch (IOException e) {
@@ -144,31 +210,47 @@ public class JdkResolver {
 		}
 	}
 
-	private static Path resolveMiseWindows(Jdk jdk) {
-		var path = miseHomeWindows.resolve(jdk.toMise());
-		if (!Files.exists(path)) {
-			return null;
-		}
-
-		return path;
+	private static Optional<Path> resolveJdk(Jdk jdk, List<Function<Jdk, Optional<Path>>> resolvers) {
+		return resolvers.stream().parallel().flatMap(r -> r.apply(jdk).stream()).findAny();
 	}
 
-	private static Path resolveMise(Jdk jdk) {
-		var path = miseHome.resolve(jdk.toMise());
-		if (!Files.exists(path)) {
-			return null;
-		}
-
-		return path;
+	private static Optional<Path> resolveMiseWindows(Jdk jdk) {
+		return findJdkFromDir(miseHomeWindows, jdk);
 	}
 
-	private static Path resolveSdkman(Jdk jdk) {
-		var path = sdkmanHome.resolve(jdk.toSdkman());
-		if (!Files.exists(path)) {
-			return null;
-		}
+	private static Optional<Path> resolveMise(Jdk jdk) {
+		return findJdkFromDir(miseHome, jdk);
+	}
 
-		return path;
+	private static Optional<Path> resolveSdkman(Jdk jdk) {
+		return findJdkFromDir(sdkmanHome, jdk);
+	}
+
+	private static Optional<Path> resolveJavaHome(Jdk jdk) {
+		var homePath = javaHomeEnv();
+
+		return jdk.isHomePath(homePath)
+			? Optional.of(homePath)
+			: Optional.empty();
+	}
+
+	private static Optional<Path> resolveGraalvmHome(Jdk jdk) {
+		if (jdk.distro != Distro.graal) {
+			return Optional.empty();
+		}
+		var homePath = graalvmHomeEnv();
+
+		return jdk.isHomePath(homePath)
+			? Optional.of(homePath)
+			: Optional.empty();
+	}
+
+	private static Optional<Path> findJdkFromDir(Path installDir, Jdk jdk) {
+		try (var content = Files.list(installDir)) {
+			return content.parallel().filter(Files::isDirectory).filter(jdk::isHomePath).findAny();
+		} catch (IOException e) {
+			return Optional.empty();
+		}
 	}
 
 	public static enum Distro {
@@ -176,7 +258,7 @@ public class JdkResolver {
 		temurin,
 		corretto,
 		graal,
-		unknown;
+		zulu;
 
 		public static Distro parse(String distro) {
 			switch (distro) {
@@ -195,39 +277,33 @@ public class JdkResolver {
 				case "oracle":
 				case "open":
 					return openjdk;
+				case "zulu":
+				case "azul":
+					return zulu;
 				default:
-					return unknown;
+					throw new IllegalArgumentException(
+						"Your distro is not recommended (check out https://whichjdk.com/), use one of "
+							+ Arrays.toString(Distro.values())
+					);
 			}
 		}
 
-		public String toMise() {
+		public boolean isRelease(String release) {
 			switch (this) {
-				case openjdk:
-					return "oracle";
-				case temurin:
-					return "tem";
-				case corretto:
-					return "amzn";
+				// make sure graal is above openjdk, because they have the same implementor value
 				case graal:
-					return "graal";
-				default:
-					return null;
+					return release.contains("GRAALVM_VERSION");
+				case openjdk:
+					return release.contains("IMPLEMENTOR=\"Oracle Corporation\"");
+				case temurin:
+					return release.contains("Adoptium") || release.contains("Eclipse");
+				case corretto:
+					return release.contains("Corretto");
+				case zulu:
+					return release.contains("Azul");
 			}
-		}
 
-		public String toSdkman() {
-			switch (this) {
-				case openjdk:
-					return "oracle";
-				case temurin:
-					return "tem";
-				case corretto:
-					return "amzn";
-				case graal:
-					return "graal";
-				default:
-					return null;
-			}
+			return false;
 		}
 	}
 
@@ -246,32 +322,29 @@ public class JdkResolver {
 			}
 
 			var split = id.split("-");
-			if (split.length != 2) {
-				throw new IllegalArgumentException("Jdk version should be specified as <version>-<distro>");
-			}
 			var version = split[0].trim();
-			var distro = Distro.parse(split[1]);
-			if (distro == Distro.unknown) {
-				version += "-" + split[1];
+			if (split.length == 1) {
+				return new Jdk(version, null);
 			}
+
+			var distro = Distro.parse(split[1]);
 
 			return new Jdk(version, distro);
 		}
 
-		public String toMise() {
-			if (distro == Distro.unknown) {
-				return version;
+		public boolean isHomePath(Path path) {
+			if (path == null) {
+				return false;
 			}
 
-			return version + "-" + distro.toMise();
-		}
-
-		public String toSdkman() {
-			if (distro == Distro.unknown) {
-				return version;
+			try {
+				var release = Files.readString(path.resolve("release"));
+				return release.contains("""
+					JAVA_VERSION="%s"
+					""".formatted(version)) && (distro == null || distro.isRelease(release));
+			} catch (IOException e) {
+				return false;
 			}
-
-			return version + "-" + distro.toSdkman();
 		}
 
 		@Override

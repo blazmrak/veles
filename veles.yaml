@@ -1,8 +1,7 @@
 artifact: veles:0.1.0
 
 settings:
-  native:
-    graalVersion: 25
+  jdk: 25
 
 dependencies:
   - info.picocli:picocli:4.7.7

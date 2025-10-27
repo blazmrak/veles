@@ -183,7 +183,7 @@ public class ConfigDoc {
 		}
 
 		public static class Native {
-			public String graalVersion = "25";
+			public String graalVersion;
 
 			public static Native parse(Object obj) {
 				var target = new Native();

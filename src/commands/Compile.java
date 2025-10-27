@@ -207,8 +207,7 @@ public class Compile implements Runnable {
 				"-jar",
 				Config.outputDir().resolve(Config.outputJavaUberJarName()).toString(),
 				"-o",
-				Config.outputDir().resolve(Config.outputNativeExecutableName()).toString(),
-				Config.getEntrypoint().canonicalName()
+				Config.outputDir().resolve(Config.outputNativeExecutableName()).toString()
 			);
 		} else {
 			command = List.of(
