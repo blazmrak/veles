@@ -37,6 +37,16 @@ jobs:
           key: maven-${{ hashFiles('veles.yaml') }}
           restore-keys: |
             maven-
+      - name: Update release version
+        run: |
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            echo "${GITHUB_REF#refs/tags/}" > ./src/VERSION
+          else
+            echo ">=$(gh release list --exclude-pre-releases --json tagName --jq '.[0].tagName')-dev-${GITHUB_SHA:0:7}" > ./src/VERSION
+          fi
+        env:
+          GH_TOKEN: ${{ github.token }}
+
       - name: Compile
         run: |
           java -jar ./release/veles-${{ env.veles-version}}.jar compile -u

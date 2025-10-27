@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
 
+basedir="$(dirname "$0")/.."
+
 sudo cp /usr/bin/veles /usr/bin/veles-old
-sudo cp target/app /usr/bin/veles
+sudo cp "$basedir/target/veles" /usr/bin/veles
