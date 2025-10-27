@@ -249,8 +249,18 @@ veles help                    # [x]
 artifact: group:artifact:version
 
 settings:
+  jdk: [<version>-<distro>]
   compiler:
-    release: 25
+    release: [version]
+  native:
+    graalVersion: 25
+  project:
+    src: [src path]
+    test: [test path]
+  format:
+    formatter: eclipse/palantir
+    lineWidth: 100
+    indent: tab
 
 dependencies:
     - group:artifact:version

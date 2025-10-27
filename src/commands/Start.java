@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import common.JdkResolver;
 import config.Config;
 import config.ConfigDoc.ConfDependency.Scope;
 import mixins.CommandExecutor;
@@ -74,7 +75,7 @@ public class Start implements Runnable {
 
 		var command = new ArrayList<String>();
 		if (!doNative) {
-			command.add("java");
+			command.add(JdkResolver.java().toString());
 			if (Config.isPreviewEnabled()) {
 				command.add("--enable-preview");
 			}

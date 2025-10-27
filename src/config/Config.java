@@ -66,6 +66,10 @@ public class Config {
 		return config.settings._native.graalVersion;
 	}
 
+	public static String jdkVersion() {
+		return config.settings.jdk;
+	}
+
 	public static Path sourceDir() {
 		if (sourceDir == null) {
 			sourceDir = Config.getEntrypoint(null).sourceDir();
