@@ -176,6 +176,15 @@
       ]
     },
     {
+      "type": "common.VersionProvider",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
       "type": "eu.maveniverse.maven.mima.runtime.standalonestatic.StandaloneStaticRuntime"
     },
     {

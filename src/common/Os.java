@@ -1,19 +1,27 @@
 package common;
 
 public class Os {
-	private static final String os = System.getProperty("os.name").toLowerCase();
-	public static final String version = System.getProperty("os.version").toLowerCase();
-	public static final String arch = System.getProperty("os.arch").toLowerCase();
+	public static String name() {
+		return System.getProperty("os.name").toLowerCase();
+	}
+
+	public static String version() {
+		return System.getProperty("os.version").toLowerCase();
+	}
+
+	public static String arch() {
+		return System.getProperty("os.arch").toLowerCase();
+	}
 
 	public static boolean isWindows() {
-		return os.contains("windows");
+		return name().contains("windows");
 	}
 
 	public static boolean isLinux() {
-		return os.contains("linux");
+		return name().contains("linux");
 	}
 
 	public static boolean isMacos() {
-		return os.contains("mac");
+		return name().contains("mac");
 	}
 }

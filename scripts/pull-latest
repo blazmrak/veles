@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+basedir="$(dirname "$0")/.."
+
+mkdir -p "$basedir/target"
+curl -L https://github.com/blazmrak/veles/releases/download/nightly/veles-linux-x86_64.tar.gz -o "$basedir/target/linux.tar.gz"
+cd "$basedir/target" || exit 1
+tar -xvzf "linux.tar.gz"

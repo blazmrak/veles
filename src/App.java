@@ -12,6 +12,7 @@ import commands.Init;
 import commands.Lsp;
 import commands.Run;
 import commands.Start;
+import common.VersionProvider;
 import picocli.AutoComplete.GenerateCompletion;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
@@ -20,7 +21,7 @@ import picocli.CommandLine.Command;
 	name = "veles",
 	description = { "Simple JDK wrapper" },
 	mixinStandardHelpOptions = true,
-	version = "0.1.1"
+	versionProvider = VersionProvider.class
 )
 public class App {
 	public static void main(String[] args) {
