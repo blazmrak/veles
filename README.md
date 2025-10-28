@@ -2,10 +2,18 @@
 
 The JDK CLI, reimagined for simplicity
 
-## What to expect?
+## Features
 
-From the root of your project, you can just run `veles run` or if
-you want to compile, then run `veles compile --uber` - This is how Veles is compiled.
+- `veles run` to skip compilation step
+- does not dictate project structure (no verbose `src/main/java`, "resources" are next to the source code)
+- autodetects the entrypoint to your app
+- `veles compile` - package to `jar`, `uber-jar`, `native` and more, OOTB no config or plugins
+- Leyden support with `veles start --train` and `veles start --aot`
+- `veles dep` to fuzzy search your local Maven repo for deps instead of having to Google
+- `veles format` - includes Eclipse formatter with sane config
+- `veles lsp` - generates dotfiles for JdtLS, which also means that your code is formatted as you go
+- It has a `--dry-run` option that prints the JDK commands, so that you can learn what is happening under the hood.
+- If you hate it or have outgrown it, you can use `veles export` to convert it into a Maven project.
 
 ## Installation
 
