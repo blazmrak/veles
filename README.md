@@ -1,6 +1,6 @@
 # Veles
 
-Reimagined JDK CLI.
+The JDK CLI, reimagined for simplicity
 
 ## What to expect?
 
