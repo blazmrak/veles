@@ -84,8 +84,8 @@ public class Dep implements Runnable {
 		}
 
 		// save runtime time file
-		var runtimeDeps = resolve(Scope.COMPILE, Scope.PROVIDED).map(this::linkLib)
-			.collect(joining(":")) + ":" + Config.outputClassesDir().toString();
+		var runtimeDeps = resolve(Scope.COMPILE, Scope.RUNTIME).map(this::linkLib).collect(joining(":"))
+			+ ":" + Config.outputClassesDir().toString();
 		var runtimeFile = new StringBuilder();
 		if (runtimeDeps.length() > 0) {
 			runtimeFile.append("-cp\n");
