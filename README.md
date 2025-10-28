@@ -1,6 +1,6 @@
 # Veles
 
-Java CLI for humans.
+Reimagined JDK CLI.
 
 ## What to expect?
 
