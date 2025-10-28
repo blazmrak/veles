@@ -19,7 +19,7 @@ jobs:
       - uses: actions/setup-java@v5
         with:
           distribution: "temurin"
-          java-version: "25"
+          java-version: "25.0.1"
 
       - name: Download veles
         env:
@@ -44,6 +44,7 @@ jobs:
           else
             echo ">=$(gh release list --exclude-pre-releases --json tagName --jq '.[0].tagName')-dev-${GITHUB_SHA:0:7}" > ./src/VERSION
           fi
+          cat src/VERSION >> $GITHUB_OUTPUT
         env:
           GH_TOKEN: ${{ github.token }}
 
@@ -88,7 +89,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: graalvm/setup-graalvm@v1
         with:
-          java-version: "25"
+          java-version: "25.0.1"
           distribution: "graalvm"
           github-token: ${{ secrets.GITHUB_TOKEN }}
           native-image-job-reports: "true"
@@ -98,11 +99,10 @@ jobs:
           path: ./artifact
 
       - name: Build executable
-        env:
-          GH_TOKEN: ${{ github.token }}
         run: |
           mkdir target
-          native-image -jar ./artifact/app-uber.jar -o target/veles
+          java -jar ./artifact/app-uber.jar --version > src/VERSION
+          java -jar ./artifact/app-uber.jar compile -tjuUni --verbose
 
       - name: Package executable UNIX
         if: matrix.os != 'windows'

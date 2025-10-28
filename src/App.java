@@ -6,7 +6,6 @@ import commands.Compile;
 import commands.Configure;
 import commands.Dep;
 import commands.Dev;
-import commands.Export;
 import commands.Format;
 import commands.Init;
 import commands.Lsp;
@@ -37,7 +36,6 @@ public class App {
 			.addSubcommand(new Lsp())
 			.addSubcommand(new Format())
 			.addSubcommand(new Configure())
-			.addSubcommand(new Export())
 			.addSubcommand(new GenerateCompletion())
 			.execute(args);
 	}

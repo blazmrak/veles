@@ -1,6 +1,6 @@
 package commands;
 
-import static common.DependencyResolution.resolvePaths;
+import static common.DependencyResolution.mavenDeps;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 import common.JdkResolver;
 import common.Paths;
@@ -50,8 +49,9 @@ public class Run implements Runnable {
 		if (Files.exists(Path.of(".dep.nocomp")) && !ignoreDepfiles) {
 			command.add("@.dep.nocomp");
 		} else {
-			var classpath = resolvePaths(Scope.COMPILE, Scope.RUNTIME, Scope.PROVIDED)
-				.collect(Collectors.joining(":"));
+			var classpath = mavenDeps().add(Scope.COMPILE, Scope.RUNTIME, Scope.PROVIDED)
+				.classpath()
+				.toString();
 			if (!classpath.isBlank()) {
 				command.add("-cp");
 				command.add(classpath);
@@ -64,7 +64,10 @@ public class Run implements Runnable {
 		command.addAll(args);
 
 		if (!watch) {
-			executor.executeBlocking(command);
+			var code = executor.executeBlocking(command);
+			if (code != 0) {
+				System.exit(code);
+			}
 			return;
 		}
 

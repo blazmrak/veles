@@ -1,6 +1,9 @@
 package commands;
 
+import static common.DependencyResolution.mavenDeps;
 import static common.DependencyResolution.resolvePaths;
+import static config.Config.jacocoVersion;
+import static config.Config.junitVersion;
 import static java.util.stream.Collectors.joining;
 
 import java.io.File;
@@ -13,12 +16,16 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
 
+import common.CliCommand;
+import common.DependencyResolution;
 import common.FilesUtil;
 import common.JdkResolver;
 import common.Paths;
 import common.Zip;
 import config.Config;
+import config.ConfigDoc.ConfDependency;
 import config.ConfigDoc.ConfDependency.Scope;
+import config.ConfigDoc.Gav;
 import mixins.CommandExecutor;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Mixin;
@@ -30,11 +37,20 @@ public class Compile implements Runnable {
 	@Mixin
 	CommandExecutor executor;
 
+	@Option(names = { "-c", "--full-clean" }, description = { "Delete the target directory" })
+	boolean fullClean;
+
 	@Option(names = { "-C", "--skip-clean" }, description = { "Clean the classes output" })
 	boolean skipClean;
 
 	@Option(names = { "-S", "--skip-compile" }, description = { "Skip compilation step" })
 	boolean skipCompile;
+
+	@Option(names = { "-t", "--unit-test" }, description = { "Run unit tests" })
+	boolean doUnit;
+
+	@Option(names = { "-T", "--unit-quick" }, description = { "Skip unit tests tagged with 'slow'" })
+	boolean doUnitQuick;
 
 	@Option(names = { "-j", "--jar" }, description = { "Package classes as a .jar file" })
 	boolean doJar;
@@ -63,6 +79,28 @@ public class Compile implements Runnable {
 	@Option(names = { "-U", "--exploded" }, description = { "Unzip the uber jar" })
 	boolean doExploded;
 
+	@Option(names = { "-i", "--integration-test" }, description = { "Run integration tests" })
+	boolean doIntegration;
+
+	@Option(
+		names = { "-I", "--integration-quick" },
+		description = { "Skip integrationt tests tagged with 'slow'" }
+	)
+	boolean doIntegrationQuick;
+
+	@Option(names = { "-O", "--only" }, description = { "Run only the tests that have 'only' tag" })
+	boolean runOnly;
+
+	@Option(
+		names = { "-f", "--filter" },
+		description = { "Equivalent to JUnit --include-methodname, used for filtering tests" },
+		arity = "1..*"
+	)
+	List<String> filterPatterns = Collections.emptyList();
+
+	@Option(names = { "--cover" }, description = { "Produce coverage report" })
+	boolean doCover;
+
 	@Option(names = { "-e", "--entrypoint" }, description = { "Entrypoint for the java program" })
 	String entrypoint;
 
@@ -79,6 +117,11 @@ public class Compile implements Runnable {
 
 		if (!skipCompile) {
 			compile();
+		}
+
+		if (doUnit) {
+			testCompile();
+			unitTestRun();
 		}
 
 		if (doReach) {
@@ -108,6 +151,34 @@ public class Compile implements Runnable {
 		if (doNative) {
 			_native();
 		}
+
+		if (doIntegration) {
+			if (!doUnit) {
+				testCompile();
+			}
+			integrationTestRun();
+		}
+
+		if (doCover) {
+			generateCoverageReport();
+		}
+	}
+
+	private void generateCoverageReport() {
+		var jacocoCli = DependencyResolution
+			.getArtifact(new Gav("org.jacoco:org.jacoco.cli:" + jacocoVersion()), "nodeps")
+			.getFile()
+			.getAbsolutePath();
+		var command = new CliCommand.Java().option("-jar", jacocoCli)
+			.add("report")
+			.add(Config.outputDir().resolve("test-reports", "jacoco.exec").toString())
+			.option("--classfiles", Config.outputClassesDir().toString())
+			.option("--sourcefiles", Config.sourceDir().toString())
+			.option("--html", Config.outputDir().resolve("test-reports", "coverage").toString())
+			.option("--xml", Config.outputDir().resolve("test-reports", "coverage.xml").toString())
+			.get();
+
+		executor.executeBlocking(command);
 	}
 
 	private void exploded() {
@@ -115,6 +186,145 @@ public class Compile implements Runnable {
 			Config.outputDir().resolve(Config.outputJavaUberJarName()),
 			Config.outputDir().resolve("exploded")
 		);
+	}
+
+	private void testCompile() {
+		var testPath = Config.testDir();
+		if (!Files.exists(testPath)) {
+			return;
+		}
+
+		copyResources(testPath, Config.outputTestClassesDir());
+
+		var command = new ArrayList<String>();
+		command.add(JdkResolver.javac().toString());
+		command.add("--source-path");
+		command.add(testPath.toString());
+		if (Config.getRelease() != 0) {
+			command.add("--release");
+			command.add(String.valueOf(Config.getRelease()));
+		}
+		if (Config.isPreviewEnabled()) {
+			command.add("--enable-preview");
+		}
+
+		if (Files.exists(Path.of(".dep.testcomp")) && !ignoreDepfiles) {
+			command.add("@.dep.testcomp");
+		} else {
+			var compileTestDeps = mavenDeps().add(Scope.COMPILE, Scope.PROVIDED, Scope.TEST)
+				.add(ConfDependency.parse("!org.junit.jupiter:junit-jupiter-api:" + junitVersion()))
+				.add(ConfDependency.parse("!org.junit.jupiter:junit-jupiter-params:" + junitVersion()))
+				.classpath()
+				.add(Config.outputClassesDir());
+
+			command.add("-cp");
+			command.add(compileTestDeps.toString());
+
+			var processors = mavenDeps().add(Scope.PROCESSOR).classpath().toString();
+			if (!processors.isBlank()) {
+				command.add("--processor-path");
+				command.add(processors);
+				command.add("-s");
+				command.add(Config.outputTestGeneratedDir().toString());
+			}
+
+			command.add("-d");
+			command.add(Config.outputTestClassesDir().toString());
+		}
+
+		try (var files = Paths.allTestFiles()) {
+			files.map(Path::toString).forEach(command::add);
+		}
+
+		var res = executor.executeBlocking(command);
+		if (res != 0) {
+			System.exit(res);
+		}
+	}
+
+	private void unitTestRun() {
+		var command = testCommand();
+		command.add("--reports-dir");
+		command.add(Config.outputDir().resolve("test-reports", "junit-unit").toString());
+		if (doUnitQuick) {
+			command.add("--exclude-tag");
+			command.add("slow");
+		}
+
+		var res = executor.executeBlocking(command);
+		if (res != 0) {
+			System.exit(res);
+		}
+	}
+
+	private void integrationTestRun() {
+		var command = testCommand();
+		command.add("--include-classname");
+		command.add(".*IT$");
+		command.add("--reports-dir");
+		command.add(Config.outputDir().resolve("test-reports", "junit-integration").toString());
+		if (doIntegrationQuick) {
+			command.add("--exclude-tag");
+			command.add("slow");
+		}
+
+		var res = executor.executeBlocking(command);
+		if (res != 0) {
+			System.exit(res);
+		}
+	}
+
+	private List<String> testCommand() {
+		var command = new ArrayList<String>();
+		command.add(JdkResolver.java().toString());
+		if (doCover) {
+			var agent = DependencyResolution
+				.getArtifact(new Gav("org.jacoco:org.jacoco.agent:" + jacocoVersion()), "runtime")
+				.getFile()
+				.getAbsolutePath();
+			command.add(
+				"-javaagent:%s=destfile=%s"
+					.formatted(agent, Config.outputDir().resolve("test-reports", "jacoco.exec"))
+			);
+		}
+		if (Config.isPreviewEnabled()) {
+			command.add("--enable-preview");
+		}
+
+		if (Files.exists(Path.of(".dep.test")) && !ignoreDepfiles) {
+			command.add("@.dep.test");
+		} else {
+			var classpath = mavenDeps().add(Scope.COMPILE, Scope.RUNTIME, Scope.TEST)
+				.add(ConfDependency.parse("!org.junit.platform:junit-platform-console:" + junitVersion()))
+				.add(ConfDependency.parse("!org.junit.jupiter:junit-jupiter-engine:" + junitVersion()))
+				.add(ConfDependency.parse("!org.junit.jupiter:junit-jupiter-params:" + junitVersion()))
+				.classpath()
+				.add(Config.outputClassesDir())
+				.add(Config.outputTestClassesDir())
+				.toString();
+
+			command.add("-cp");
+			command.add(classpath);
+		}
+
+		command.add("org.junit.platform.console.ConsoleLauncher");
+		command.add("execute");
+		command.add("--scan-class-path");
+		command.add("--disable-banner");
+		command.add("--fail-if-no-tests");
+		if (runOnly) {
+			command.add("--include-tag");
+			command.add("only");
+		}
+		filterPatterns.forEach(pattern -> {
+			command.add("--include-methodname");
+			command.add(pattern);
+		});
+		command.add("--config=junit.platform.reporting.open.xml.enabled=true");
+		command.add("--config=junit.jupiter.execution.parallel.enabled=true");
+		command.add("--config=junit.jupiter.execution.parallel.mode.default=concurrent");
+
+		return command;
 	}
 
 	/**
@@ -173,8 +383,11 @@ public class Compile implements Runnable {
 		var reachabilityDir = Config.getArtifactId().isBlank()
 			? "veles-generated"
 			: Config.getArtifactId();
-		var classpath = resolvePaths(Scope.COMPILE, Scope.PROVIDED, Scope.RUNTIME).collect(joining(":"))
-			+ ":" + Config.outputClassesDir();
+		var classpath = mavenDeps().add(Scope.COMPILE, Scope.PROVIDED, Scope.RUNTIME)
+			.classpath()
+			.add(Config.outputClassesDir())
+			.toString();
+
 		var traceCmd = new ArrayList<String>();
 		traceCmd.add(JdkResolver.graalJava().toString());
 		traceCmd.add(
@@ -213,8 +426,10 @@ public class Compile implements Runnable {
 			command = List.of(
 				JdkResolver.nativeImage().toString(),
 				"-cp",
-				resolvePaths(Scope.COMPILE, Scope.PROVIDED, Scope.RUNTIME).collect(joining(":")) + ":"
-					+ Config.outputClassesDir(),
+				mavenDeps().add(Scope.COMPILE, Scope.PROVIDED, Scope.RUNTIME)
+					.classpath()
+					.add(Config.outputClassesDir())
+					.toString(),
 				"-o",
 				Config.outputDir().resolve(Config.outputNativeExecutableName()).toString(),
 				Config.getEntrypoint().canonicalName()
@@ -306,7 +521,15 @@ public class Compile implements Runnable {
 	}
 
 	private void clean() {
-		deleteDir(Config.outputClassesDir());
+		if (fullClean) {
+			deleteDir(Config.outputDir());
+		} else {
+			deleteDir(Config.outputClassesDir());
+			if (doUnit || doIntegration) {
+				deleteDir(Config.outputTestClassesDir());
+				deleteDir(Config.outputDir().resolve("test-reports"));
+			}
+		}
 	}
 
 	/**
@@ -330,16 +553,16 @@ public class Compile implements Runnable {
 		if (Files.exists(Path.of(".dep.compile")) && !ignoreDepfiles) {
 			command.add("@.dep.compile");
 		} else {
-			var classpath = resolvePaths(Scope.COMPILE, Scope.PROVIDED).collect(joining(":"));
-			if (!classpath.isBlank()) {
+			var classpath = mavenDeps().add(Scope.COMPILE, Scope.PROVIDED).classpath();
+			if (classpath.hasDeps()) {
 				command.add("-cp");
-				command.add(classpath);
+				command.add(classpath.toString());
 			}
 
-			var processors = resolvePaths(Scope.PROCESSOR).collect(joining(":"));
-			if (!processors.isBlank()) {
+			var processors = mavenDeps().add(Scope.PROCESSOR).classpath();
+			if (processors.hasDeps()) {
 				command.add("--processor-path");
-				command.add(processors);
+				command.add(processors.toString());
 				command.add("-s");
 				command.add(Config.outputGeneratedDir().toString());
 			}

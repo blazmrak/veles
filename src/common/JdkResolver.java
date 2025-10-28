@@ -58,7 +58,11 @@ public class JdkResolver {
 			var home = graalvmHome();
 
 			if (home != null) {
-				nativeImage = home.resolve("bin", "native-image");
+				if (Os.isWindows()) {
+					nativeImage = home.resolve("bin", "native-image.cmd");
+				} else {
+					nativeImage = home.resolve("bin", "native-image");
+				}
 			} else {
 				nativeImage = Path.of("native-image");
 			}
@@ -339,9 +343,8 @@ public class JdkResolver {
 
 			try {
 				var release = Files.readString(path.resolve("release"));
-				return release.contains("""
-					JAVA_VERSION="%s"
-					""".formatted(version)) && (distro == null || distro.isRelease(release));
+				var versionLine = "JAVA_VERSION=\"%s\"".formatted(version);
+				return release.contains(versionLine) && (distro == null || distro.isRelease(release));
 			} catch (IOException e) {
 				return false;
 			}

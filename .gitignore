@@ -1,3 +1,5 @@
+!**/format.xml
+!.settings/format.xml
 libs*
 target
 app*
@@ -5,3 +7,8 @@ node_modules
 .prettierrc*
 package*
 .veles
+.classpath
+.factorypath
+.project
+.settings/org.eclipse.jdt.apt*
+.settings/org.eclipse.m2e*

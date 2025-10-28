@@ -40,6 +40,14 @@ public class Paths {
 		return Optional.empty();
 	}
 
+	public static Stream<Path> allTestFiles() {
+		try {
+			return Files.walk(Config.testDir()).filter(f -> f.getFileName().toString().endsWith(".java"));
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
 	public static Stream<Path> allSourceFiles() {
 		return allNonBuildVisible().filter(f -> f.startsWith(Config.sourceDir()))
 			.filter(f -> f.toString().endsWith(".java"));
@@ -50,10 +58,8 @@ public class Paths {
 			.filter(f -> !f.toString().endsWith(".java"));
 	}
 
-	///
 	/// @return A stream of files in the project, skipping `target` directory and hidden files and
-	///         directories
-	///
+	///         directories ///
 	public static Stream<Path> allNonBuildVisible() {
 		var files = new ArrayList<Path>();
 

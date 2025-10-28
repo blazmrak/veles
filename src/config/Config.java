@@ -35,6 +35,7 @@ public class Config {
 	private static Yaml yaml;
 	private static ConfigDoc config;
 	private static Path sourceDir;
+	private static Path testDir = Path.of("test");
 	private static Entrypoint entrypoint;
 	private static Gav gav;
 
@@ -62,6 +63,14 @@ public class Config {
 		}
 	}
 
+	public static String junitVersion() {
+		return config.settings.test.junitVersion;
+	}
+
+	public static String jacocoVersion() {
+		return config.settings.test.jacocoVersion;
+	}
+
 	public static String graalVersion() {
 		return config.settings._native.graalVersion;
 	}
@@ -73,9 +82,16 @@ public class Config {
 	public static Path sourceDir() {
 		if (sourceDir == null) {
 			sourceDir = Config.getEntrypoint(null).sourceDir();
+			if (sourceDir.startsWith(Path.of("."))) {
+				sourceDir = sourceDir.subpath(1, sourceDir.getNameCount());
+			}
 		}
 
 		return sourceDir;
+	}
+
+	public static Path testDir() {
+		return testDir;
 	}
 
 	public static Path sourceDir(String mainClass) {
@@ -90,12 +106,24 @@ public class Config {
 		return Path.of("target");
 	}
 
+	public static Path outputTestClassesDir() {
+		return outputDir().resolve("test-classes");
+	}
+
 	public static Path outputClassesDir() {
 		return outputDir().resolve("classes");
 	}
 
 	public static Path outputGeneratedDir() {
 		return outputDir().resolve("generated-sources", "annotations");
+	}
+
+	public static Path outputTestGeneratedDir() {
+		return outputDir().resolve("test-generated-sources", "annotations");
+	}
+
+	public static Path outputExplodedDir() {
+		return outputDir().resolve("exploded");
 	}
 
 	public static String outputNativeExecutableName() {
@@ -106,8 +134,16 @@ public class Config {
 		return outputNativeExecutableName() + ".jar";
 	}
 
+	public static Path outputJavaJarPath() {
+		return outputDir().resolve(outputJavaJarName());
+	}
+
 	public static String outputJavaUberJarName() {
 		return outputNativeExecutableName() + "-uber.jar";
+	}
+
+	public static Path outputJavaUberJarPath() {
+		return outputDir().resolve(outputJavaUberJarName());
 	}
 
 	public static boolean isPreviewEnabled() {

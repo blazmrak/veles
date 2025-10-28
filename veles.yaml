@@ -1,5 +1,5 @@
 settings:
-  jdk: 25
+  jdk: 25.0.1
 
 dependencies:
   - info.picocli:picocli:4.7.7

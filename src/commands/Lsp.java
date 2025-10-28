@@ -1,9 +1,6 @@
 package commands;
 
-import static common.DependencyResolution.getDocumentation;
-import static common.DependencyResolution.getSources;
-import static common.DependencyResolution.resolve;
-import static common.DependencyResolution.resolvePaths;
+import static java.util.stream.Collectors.joining;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -11,83 +8,31 @@ import java.nio.file.Path;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-import org.eclipse.aether.artifact.Artifact;
-
+import common.MavenPom;
 import common.Paths;
 import config.Config;
-import config.ConfigDoc.ConfDependency.Scope;
-import config.ConfigDoc.Gav;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
 @Command(name = "lsp", description = { "Generate files for JdtLS language server" })
 public class Lsp implements Runnable {
-	private static final Path APT_PREFS_PATH = Path.of(".settings", "org.eclipse.jdt.apt.core.prefs");
 	private static final Path CORE_PREFS_PATH = Path.of(".settings", "org.eclipse.jdt.core.prefs");
 
 	@Option(names = { "-d", "--documentation" })
 	boolean pullDocumentation;
 
 	public void run() {
-		var entries = resolve(Scope.COMPILE, Scope.RUNTIME, Scope.PROVIDED).map(artifact -> {
-			var gav = new Gav(artifact);
-			Artifact sources = null;
-			Artifact documentation = null;
-			sources = getSources(gav, !pullDocumentation);
-			documentation = getDocumentation(gav, !pullDocumentation);
-			return new ClassPathEntry(artifact, sources, documentation);
-		});
-		updateProject();
-		updateClassPath(entries);
-		updateFactoryPath(resolvePaths(Scope.PROCESSOR));
 		updateEditorConfig();
-
+		// formatter must be before JdtLS settings
+		updateFormatterXml();
 		configureSettings();
-	}
-
-	private void updateProject() {
-		try {
-			Files.writeString(Path.of(".project"), """
-				<?xml version="1.0" encoding="UTF-8"?>
-				<projectDescription>
-				  <name>%s</name>
-				  <comment></comment>
-				  <projects>
-				  </projects>
-				  <buildSpec>
-				    <buildCommand>
-				      <name>org.eclipse.jdt.core.javabuilder</name>
-				      <arguments>
-				      </arguments>
-				    </buildCommand>
-				  </buildSpec>
-				  <natures>
-				    <nature>org.eclipse.jdt.core.javanature</nature>
-				  </natures>
-				  <filteredResources>
-				    <filter>
-				      <id>1756271453664</id>
-				      <name></name>
-				      <type>30</type>
-				      <matcher>
-				        <id>org.eclipse.core.resources.regexFilterMatcher</id>
-				        <arguments>node_modules|\\.git|__CREATED_BY_JAVA_LANGUAGE_SERVER__</arguments>
-				      </matcher>
-				    </filter>
-				  </filteredResources>
-				</projectDescription>
-				""".formatted(Config.getArtifactId()));
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
+		MavenPom.generatePomXml();
 	}
 
 	public void configureSettings() {
 		Paths.ensureDirExists(Path.of(".settings"));
 		updateCorePreferences();
-		updateAptPrefs();
 	}
 
 	public Map<String, String> readFormatterSettings() {
@@ -134,6 +79,46 @@ public class Lsp implements Runnable {
 		}
 	}
 
+	private void updateFormatterXml() {
+		var currentPrefs = parsePrefs(CORE_PREFS_PATH);
+		var defaultPrefs = defaultFormatterPrefs();
+
+		currentPrefs.forEach((k, v) -> {
+			if (k.contains("formatter")) {
+				defaultPrefs.put(k, v);
+			}
+		});
+
+		defaultPrefs
+			.put("org.eclipse.jdt.core.formatter.lineSplit", String.valueOf(Config.getLineWidth()));
+		defaultPrefs.put(
+			"org.eclipse.jdt.core.formatter.comment.line_length",
+			String.valueOf(Config.getLineWidth())
+		);
+		defaultPrefs
+			.put("org.eclipse.jdt.core.formatter.tabulation.char", Config.getIndent().toString());
+
+		var format = """
+			<?xml version="1.0" encoding="UTF-8"?>
+			<profiles version="12">
+				<profile kind="CodeFormatterProfile" name="Default" version="12">
+			%s
+				</profile>
+			</profiles>
+			""".formatted(
+			defaultPrefs.entrySet()
+				.stream()
+				.map(s -> "\t\t<setting id=\"" + s.getKey() + "\" value=\"" + s.getValue() + "\"/>")
+				.collect(joining("\n"))
+		);
+
+		try {
+			Files.writeString(Path.of(".settings", "format.xml"), format);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
 	private void updateCorePreferences() {
 		var currentPrefs = parsePrefs(CORE_PREFS_PATH);
 		var defaultPrefs = defaultCorePrefs();
@@ -172,91 +157,6 @@ public class Lsp implements Runnable {
 		write(CORE_PREFS_PATH, newPrefs);
 	}
 
-	private void updateAptPrefs() {
-		var currentPrefs = parsePrefs(APT_PREFS_PATH);
-		var defaultPrefs = new LinkedHashMap<String, String>();
-		defaultPrefs.put("eclipse.preferences.version", "1");
-		defaultPrefs.put("org.eclipse.jdt.apt.aptEnabled", "true");
-		defaultPrefs.put("org.eclipse.jdt.apt.genSrcDir", "target/generated-sources/annotations");
-		defaultPrefs
-			.put("org.eclipse.jdt.apt.genTestSrcDir", "target/generated-test-sources/test-annotations");
-		defaultPrefs.put("org.eclipse.jdt.apt.reconcileEnabled", "true");
-		currentPrefs.forEach((k, v) -> {
-			defaultPrefs.put(k, v);
-		});
-
-		var newPrefs = defaultPrefs.entrySet()
-			.stream()
-			.map(s -> s.getKey() + "=" + s.getValue())
-			.collect(Collectors.joining("\n"));
-
-		write(APT_PREFS_PATH, newPrefs);
-	}
-
-	private record ClassPathEntry(Artifact binary, Artifact sources, Artifact documentation) {
-		public String xml() {
-			if (sources == null) {
-				return """
-					\t<classpathentry kind="lib\" path=\"%s\"/>
-					""".formatted(binary.getFile().getAbsolutePath());
-			} else if (documentation == null) {
-				return new StringBuilder("""
-					\t<classpathentry kind="lib" path="%s" sourcepath="%s"/>
-					""".formatted(binary.getFile().getAbsolutePath(), sources.getFile().getAbsolutePath()))
-					.toString();
-			} else {
-
-				return """
-					\t<classpathentry kind="lib" path="%s" sourcepath="%s">
-					\t\t<attributes>
-					\t\t\t<attribute name="javadoc_location" value="%s:file:%s!/"/>
-					\t\t</attributes>
-					\t</classpathentry>
-					""".formatted(
-					binary.getFile().getAbsolutePath(),
-					sources.getFile().getAbsolutePath(),
-					documentation.getExtension(),
-					documentation.getFile().getAbsolutePath()
-				);
-			}
-		}
-	}
-
-	private void updateClassPath(Stream<ClassPathEntry> paths) {
-		var classpaths = paths.map(ClassPathEntry::xml).collect(Collectors.joining(""));
-		var classpathFile = String.format("""
-			<classpath>
-			  <classpathentry kind="src" path="%s"/>
-			  <classpathentry kind="src" path="%s">
-			    <attributes>
-			      <attribute name="optional" value="true"/>
-			    </attributes>
-			  </classpathentry>
-			  <classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-
-			%s
-
-			  <classpathentry kind="output" path="%s"/>
-			</classpath>
-			""", Config.sourceDir(), Config.outputGeneratedDir(), classpaths, Config.outputClassesDir());
-
-		write(Path.of(".classpath"), classpathFile);
-	}
-
-	private void updateFactoryPath(Stream<String> paths) {
-		var factorypaths = paths.map(
-			"""
-				\t<factorypathentry kind="EXTJAR" id="%s" enabled="true" runInBatchMode="false"/>"""::formatted
-		).collect(Collectors.joining("\n"));
-		var factorypathFile = String.format("""
-			<factorypath>
-			%s
-			</factorypath>
-			""", factorypaths);
-
-		write(Path.of(".factorypath"), factorypathFile);
-	}
-
 	private Map<String, String> defaultCorePrefs() {
 		var newMap = new LinkedHashMap<String, String>();
 		newMap.put("eclipse.preferences.version", "1");
@@ -274,6 +174,13 @@ public class Lsp implements Runnable {
 		newMap.put("org.eclipse.jdt.core.compiler.problem.reportPreviewFeatures", "ignore");
 		newMap.put("org.eclipse.jdt.core.compiler.processAnnotations", "enabled");
 
+		newMap.putAll(defaultFormatterPrefs());
+
+		return newMap;
+	}
+
+	private Map<String, String> defaultFormatterPrefs() {
+		var newMap = new LinkedHashMap<String, String>();
 		newMap.put("org.eclipse.jdt.core.formatter.lineSplit", String.valueOf(Config.getLineWidth()));
 		newMap.put("org.eclipse.jdt.core.formatter.profile", "veles");
 		newMap.put("org.eclipse.jdt.core.formatter.profile.version", "12");
