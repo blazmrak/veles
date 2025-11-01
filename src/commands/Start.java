@@ -23,20 +23,22 @@ public class Start implements Runnable {
 	@Mixin
 	CommandExecutor executor;
 
-	@Option(names = { "-j", "--jar" }, description = { "Run compiled JAR file" })
-	public boolean doJar;
+	@ArgGroup(exclusive = true)
+	public Target target = new Target();
 
-	@Option(names = { "-n", "--native" }, description = { "Run compiled native executable" })
-	public boolean doNative;
+	public static class Target {
+		@Option(names = { "-j", "--jar" }, description = { "Run compiled JAR file" })
+		public boolean jar;
 
-	@Option(names = { "-u", "--uber" }, description = { "Run compiled uber JAR" })
-	public boolean doUber;
+		@Option(names = { "-n", "--native" }, description = { "Run compiled native executable" })
+		public boolean _native;
 
-	@Option(names = { "-U", "--exploded" }, description = { "Run the exploded directory" })
-	public boolean doExploded;
+		@Option(names = { "-u", "--uber" }, description = { "Run compiled uber JAR" })
+		public boolean uberJar;
 
-	@Option(names = { "-X", "--ignore-depfiles" }, description = { "Ignore .dep files" })
-	boolean ignoreDepfiles;
+		@Option(names = { "-U", "--exploded" }, description = { "Run the exploded directory" })
+		public boolean exploded;
+	}
 
 	@ArgGroup(exclusive = true)
 	public AOTGroup aot = new AOTGroup();
@@ -56,6 +58,20 @@ public class Start implements Runnable {
 			required = true
 		)
 		public String useAotCache;
+
+		/**
+		 * Use this if your native executable has issues. This will run GraalVM JVM using
+		 * `native-image-agent` with given arguments, which will merge the reachability metadata with
+		 * existing metadata inside `META-INF/native-image/<artifactId>`.
+		 *
+		 * This metadata is then used by the `native-image` GraalVM utility to generate the native
+		 * executable.
+		 */
+		@Option(
+			names = { "-r", "--native-reach" },
+			description = { "Use when native compilation is acting up" }
+		)
+		public boolean doReach;
 	}
 
 	@Option(
@@ -63,6 +79,9 @@ public class Start implements Runnable {
 		description = "Class to use as an entrypoint to the program"
 	)
 	public String entrypoint;
+
+	@Option(names = { "-X", "--ignore-depfiles" }, description = { "Ignore .dep files" })
+	boolean ignoreDepfiles;
 
 	@Parameters
 	public List<String> args = Collections.emptyList();
@@ -72,15 +91,23 @@ public class Start implements Runnable {
 		var entrypoint = Config.getEntrypoint(this.entrypoint);
 
 		var command = new ArrayList<String>();
-		if (!doNative) {
-			command.add(JdkResolver.java().toString());
+		if (!target._native) {
+			if (aot.doReach) {
+				command.add(JdkResolver.graalJava().toString());
+				command.add(
+					"-agentlib:native-image-agent=" + "config-merge-dir="
+						+ entrypoint.sourceDir().resolve("META-INF", "native-image", Config.getArtifactId())
+				);
+			} else {
+				command.add(JdkResolver.java().toString());
+			}
 			if (Config.isPreviewEnabled()) {
 				command.add("--enable-preview");
 			}
-			if (doJar || doUber) {
+			if (target.jar || target.uberJar) {
 				var aotCacheOutput = Config.outputDir()
 					.resolve(
-						(doUber
+						(target.uberJar
 							? Config.outputJavaUberJarName()
 							: Config.outputJavaJarName()) + ".aot"
 					);
@@ -96,13 +123,13 @@ public class Start implements Runnable {
 				}
 
 				command.add("-jar");
-				if (doJar) {
+				if (target.jar) {
 					command.add(Config.outputDir().resolve(Config.outputJavaJarName()).toString());
 				} else {
 					command.add(Config.outputDir().resolve(Config.outputJavaUberJarName()).toString());
 				}
 			} else {
-				if (doExploded) {
+				if (target.exploded) {
 					command.add("-cp");
 					command.add(Config.outputExplodedDir().toString());
 				} else if (Files.exists(Path.of(".dep.runtime")) && !ignoreDepfiles) {

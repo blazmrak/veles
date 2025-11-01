@@ -167,13 +167,16 @@ the same `--jar/--uber-jar` flag that you used for training.
 
 If you try to run the native executable, you will get errors. This is because
 Javalin uses reflection, which makes native compilation trickier. Anytime you
-get errors when running native executable, compile using `--reach` flag, which
-functions similar to Leyden in that it runs your `classes` or `app-uber.jar`
+get errors when running native executable, start your app using `start --native-reach`
+flag, which functions similar to Leyden in that it runs your `classes` or `.jar`
 first and uses a java agent to register everything that needs to be present in the
 executable during runtime. This cache is present inside `META-INF/native-image`
 directory. You should commit this to git, because not all paths might be hit
 during a reachability run, so it is important that the new entries are merged
 with the existing reachability data.
+
+Now that you have updated the reachability metadata, try compiling to native
+again and this time the application should start up normally.
 
 ### Formatting
 

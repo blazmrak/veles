@@ -58,12 +58,6 @@ public class Compile implements Runnable {
 	@Option(names = { "-n", "--native" }, description = { "Package classes as a native executable" })
 	boolean doNative;
 
-	@Option(
-		names = { "-r", "--native-reach" },
-		description = { "Used when native compilation is acting up" }
-	)
-	boolean doReach;
-
 	@Option(names = { "-z", "--zip" }, description = { "Package libs and .jar into a .zip" })
 	boolean doZip;
 
@@ -122,10 +116,6 @@ public class Compile implements Runnable {
 		if (doUnit) {
 			testCompile();
 			unitTestRun();
-		}
-
-		if (doReach) {
-			reach();
 		}
 
 		if (doJar || doZip || doDocker || doUber) {
@@ -370,42 +360,6 @@ public class Compile implements Runnable {
 		command.add(".");
 
 		executor.executeBlocking(command);
-	}
-
-	/**
-	 * Use this if your native executable has issues. This will run GraalVM JVM using
-	 * `native-image-agent` with given arguments, which will merge the reachability metadata with
-	 * existing metadata inside `META-INF/native-image/<artifactId>`.
-	 *
-	 * This metadata is then used by the `native-image` utility to generate the native executable.
-	 */
-	private void reach() {
-		var reachabilityDir = Config.getArtifactId().isBlank()
-			? "veles-generated"
-			: Config.getArtifactId();
-		var classpath = mavenDeps().add(Scope.COMPILE, Scope.PROVIDED, Scope.RUNTIME)
-			.classpath()
-			.add(Config.outputClassesDir())
-			.toString();
-
-		var traceCmd = new ArrayList<String>();
-		traceCmd.add(JdkResolver.graalJava().toString());
-		traceCmd.add(
-			"-agentlib:native-image-agent=" + "config-merge-dir=" + Config.sourceDir(entrypoint)
-				+ "/META-INF/native-image/" + reachabilityDir
-		);
-		traceCmd.add("-cp");
-		traceCmd.add(classpath);
-		traceCmd.add(Config.getEntrypoint(entrypoint).canonicalName());
-		traceCmd.addAll(args);
-		executor.executeBlocking(traceCmd);
-
-		Paths.ensureDirExists(Config.outputClassesDir().resolve("META-INF", "native-image"));
-
-		FilesUtil.copyDir(
-			Config.sourceDir(entrypoint).resolve("META-INF", "native-image"),
-			Config.outputClassesDir().resolve("META-INF", "native-image")
-		);
 	}
 
 	/**
