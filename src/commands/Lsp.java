@@ -1,109 +1,51 @@
 package commands;
 
-import static common.DependencyResolution.getDocumentation;
-import static common.DependencyResolution.getSources;
-import static common.DependencyResolution.resolve;
-import static common.DependencyResolution.resolvePaths;
+import static java.util.stream.Collectors.joining;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-import org.eclipse.aether.artifact.Artifact;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
+
+import common.MavenPom;
 import common.Paths;
 import config.Config;
-import config.ConfigDoc.ConfDependency.Scope;
-import config.ConfigDoc.Gav;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
 @Command(name = "lsp", description = { "Generate files for JdtLS language server" })
 public class Lsp implements Runnable {
-	private static final Path APT_PREFS_PATH = Path.of(".settings", "org.eclipse.jdt.apt.core.prefs");
 	private static final Path CORE_PREFS_PATH = Path.of(".settings", "org.eclipse.jdt.core.prefs");
+	private static final Path FORMAT_XML_PATH = Path.of(".settings", "format.xml");
 
 	@Option(names = { "-d", "--documentation" })
 	boolean pullDocumentation;
 
 	public void run() {
-		var entries = resolve(Scope.COMPILE, Scope.RUNTIME, Scope.PROVIDED).map(artifact -> {
-			var gav = new Gav(artifact);
-			Artifact sources = null;
-			Artifact documentation = null;
-			sources = getSources(gav, !pullDocumentation);
-			documentation = getDocumentation(gav, !pullDocumentation);
-			return new ClassPathEntry(artifact, sources, documentation);
-		});
-		updateProject();
-		updateClassPath(entries);
-		updateFactoryPath(resolvePaths(Scope.PROCESSOR));
 		updateEditorConfig();
-
-		configureSettings();
-	}
-
-	private void updateProject() {
-		try {
-			Files.writeString(Path.of(".project"), """
-				<?xml version="1.0" encoding="UTF-8"?>
-				<projectDescription>
-				  <name>%s</name>
-				  <comment></comment>
-				  <projects>
-				  </projects>
-				  <buildSpec>
-				    <buildCommand>
-				      <name>org.eclipse.jdt.core.javabuilder</name>
-				      <arguments>
-				      </arguments>
-				    </buildCommand>
-				  </buildSpec>
-				  <natures>
-				    <nature>org.eclipse.jdt.core.javanature</nature>
-				  </natures>
-				  <filteredResources>
-				    <filter>
-				      <id>1756271453664</id>
-				      <name></name>
-				      <type>30</type>
-				      <matcher>
-				        <id>org.eclipse.core.resources.regexFilterMatcher</id>
-				        <arguments>node_modules|\\.git|__CREATED_BY_JAVA_LANGUAGE_SERVER__</arguments>
-				      </matcher>
-				    </filter>
-				  </filteredResources>
-				</projectDescription>
-				""".formatted(Config.getArtifactId()));
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	public void configureSettings() {
-		Paths.ensureDirExists(Path.of(".settings"));
-		updateCorePreferences();
-		updateAptPrefs();
+		updateFormatterSettings();
+		MavenPom.generatePomXml();
 	}
 
 	public Map<String, String> readFormatterSettings() {
-		try {
-			return readFormatterSettingsFromFile();
-		} catch (Throwable e) {
-			configureSettings();
-			return readFormatterSettingsFromFile();
+		var settings = readFormatterXml();
+		if (settings == null) {
+			updateFormatterSettings();
+			return readFormatterXml();
+		} else {
+			return readFormatterXml();
 		}
-	}
-
-	private Map<String, String> readFormatterSettingsFromFile() {
-		return parsePrefs(CORE_PREFS_PATH).entrySet()
-			.stream()
-			.filter(e -> !e.getKey().startsWith("#") && e.getKey().contains("formatter"))
-			.collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
 	}
 
 	private void updateEditorConfig() {
@@ -134,12 +76,23 @@ public class Lsp implements Runnable {
 		}
 	}
 
-	private void updateCorePreferences() {
-		var currentPrefs = parsePrefs(CORE_PREFS_PATH);
-		var defaultPrefs = defaultCorePrefs();
+	private void updateFormatterSettings() {
+		Paths.ensureDirExists(Path.of(".settings"));
+		updateFormatterXml();
+		updateJdtlsPrefs();
+	}
 
-		currentPrefs.forEach((k, v) -> {
-			defaultPrefs.put(k, v);
+	private void updateFormatterXml() {
+		var currentSettings = readFormatterXml();
+		if (currentSettings == null) {
+			currentSettings = parsePrefs(CORE_PREFS_PATH);
+		}
+		var defaultPrefs = defaultFormatterPrefs();
+
+		currentSettings.forEach((k, v) -> {
+			if (k.contains("formatter")) {
+				defaultPrefs.put(k, v);
+			}
 		});
 
 		defaultPrefs
@@ -150,111 +103,83 @@ public class Lsp implements Runnable {
 		);
 		defaultPrefs
 			.put("org.eclipse.jdt.core.formatter.tabulation.char", Config.getIndent().toString());
+
+		var format = """
+			<?xml version="1.0" encoding="UTF-8"?>
+			<profiles version="12">
+				<profile kind="CodeFormatterProfile" name="Default" version="12">
+			%s
+				</profile>
+			</profiles>
+			""".formatted(
+			defaultPrefs.entrySet()
+				.stream()
+				.map(s -> "\t\t<setting id=\"" + s.getKey() + "\" value=\"" + s.getValue() + "\"/>")
+				.collect(joining("\n"))
+		);
+
+		try {
+			Files.writeString(FORMAT_XML_PATH, format);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	private Map<String, String> readFormatterXml() {
+		try {
+			var dbFactory = DocumentBuilderFactory.newInstance();
+			var dBuilder = dbFactory.newDocumentBuilder();
+			Document doc = dBuilder.parse(FORMAT_XML_PATH.toFile());
+			doc.getDocumentElement().normalize();
+			NodeList list = doc.getElementsByTagName("setting");
+			var result = new HashMap<String, String>();
+			for (var i = 0; i < list.getLength(); i++) {
+				switch (list.item(i)) {
+					case Element el -> {
+						var id = el.getAttribute("id");
+						var value = el.getAttribute("value");
+						result.put(id, value);
+					}
+					default -> {
+					}
+				}
+			}
+			return result;
+		} catch (SAXException | IOException | ParserConfigurationException e) {
+			return null;
+		}
+	}
+
+	private void updateJdtlsPrefs() {
+		var currentPrefs = parsePrefs(CORE_PREFS_PATH);
+		var defaultPrefs = defaultCorePrefs();
+
+		currentPrefs.forEach((k, v) -> {
+			defaultPrefs.put(k, v);
+		});
+
+		readFormatterXml().forEach((k, v) -> {
+			defaultPrefs.put(k, v);
+		});
+
 		defaultPrefs.put(
 			"org.eclipse.jdt.core.compiler.problem.enablePreviewFeatures",
 			Config.isPreviewEnabled()
 				? "enabled"
 				: "disabled"
 		);
-		defaultPrefs
-			.put("org.eclipse.jdt.core.formatter.tabulation.char", Config.getIndent().toString());
-
-		var newPrefs = defaultPrefs.entrySet()
-			.stream()
-			.map(s -> s.getKey() + "=" + s.getValue())
-			.collect(Collectors.joining("\n"));
 
 		if (Config.getRelease() == 0) {
 			defaultPrefs.remove("org.eclipse.jdt.core.compiler.source");
 			defaultPrefs.remove("org.eclipse.jdt.core.compiler.target");
 		}
 
-		write(CORE_PREFS_PATH, newPrefs);
-	}
-
-	private void updateAptPrefs() {
-		var currentPrefs = parsePrefs(APT_PREFS_PATH);
-		var defaultPrefs = new LinkedHashMap<String, String>();
-		defaultPrefs.put("eclipse.preferences.version", "1");
-		defaultPrefs.put("org.eclipse.jdt.apt.aptEnabled", "true");
-		defaultPrefs.put("org.eclipse.jdt.apt.genSrcDir", "target/generated-sources/annotations");
-		defaultPrefs
-			.put("org.eclipse.jdt.apt.genTestSrcDir", "target/generated-test-sources/test-annotations");
-		defaultPrefs.put("org.eclipse.jdt.apt.reconcileEnabled", "true");
-		currentPrefs.forEach((k, v) -> {
-			defaultPrefs.put(k, v);
-		});
-
 		var newPrefs = defaultPrefs.entrySet()
 			.stream()
 			.map(s -> s.getKey() + "=" + s.getValue())
 			.collect(Collectors.joining("\n"));
 
-		write(APT_PREFS_PATH, newPrefs);
-	}
-
-	private record ClassPathEntry(Artifact binary, Artifact sources, Artifact documentation) {
-		public String xml() {
-			if (sources == null) {
-				return """
-					\t<classpathentry kind="lib\" path=\"%s\"/>
-					""".formatted(binary.getFile().getAbsolutePath());
-			} else if (documentation == null) {
-				return new StringBuilder("""
-					\t<classpathentry kind="lib" path="%s" sourcepath="%s"/>
-					""".formatted(binary.getFile().getAbsolutePath(), sources.getFile().getAbsolutePath()))
-					.toString();
-			} else {
-
-				return """
-					\t<classpathentry kind="lib" path="%s" sourcepath="%s">
-					\t\t<attributes>
-					\t\t\t<attribute name="javadoc_location" value="%s:file:%s!/"/>
-					\t\t</attributes>
-					\t</classpathentry>
-					""".formatted(
-					binary.getFile().getAbsolutePath(),
-					sources.getFile().getAbsolutePath(),
-					documentation.getExtension(),
-					documentation.getFile().getAbsolutePath()
-				);
-			}
-		}
-	}
-
-	private void updateClassPath(Stream<ClassPathEntry> paths) {
-		var classpaths = paths.map(ClassPathEntry::xml).collect(Collectors.joining(""));
-		var classpathFile = String.format("""
-			<classpath>
-			  <classpathentry kind="src" path="%s"/>
-			  <classpathentry kind="src" path="%s">
-			    <attributes>
-			      <attribute name="optional" value="true"/>
-			    </attributes>
-			  </classpathentry>
-			  <classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-
-			%s
-
-			  <classpathentry kind="output" path="%s"/>
-			</classpath>
-			""", Config.sourceDir(), Config.outputGeneratedDir(), classpaths, Config.outputClassesDir());
-
-		write(Path.of(".classpath"), classpathFile);
-	}
-
-	private void updateFactoryPath(Stream<String> paths) {
-		var factorypaths = paths.map(
-			"""
-				\t<factorypathentry kind="EXTJAR" id="%s" enabled="true" runInBatchMode="false"/>"""::formatted
-		).collect(Collectors.joining("\n"));
-		var factorypathFile = String.format("""
-			<factorypath>
-			%s
-			</factorypath>
-			""", factorypaths);
-
-		write(Path.of(".factorypath"), factorypathFile);
+		write(CORE_PREFS_PATH, newPrefs);
 	}
 
 	private Map<String, String> defaultCorePrefs() {
@@ -274,6 +199,11 @@ public class Lsp implements Runnable {
 		newMap.put("org.eclipse.jdt.core.compiler.problem.reportPreviewFeatures", "ignore");
 		newMap.put("org.eclipse.jdt.core.compiler.processAnnotations", "enabled");
 
+		return newMap;
+	}
+
+	private Map<String, String> defaultFormatterPrefs() {
+		var newMap = new LinkedHashMap<String, String>();
 		newMap.put("org.eclipse.jdt.core.formatter.lineSplit", String.valueOf(Config.getLineWidth()));
 		newMap.put("org.eclipse.jdt.core.formatter.profile", "veles");
 		newMap.put("org.eclipse.jdt.core.formatter.profile.version", "12");

@@ -1,14 +1,12 @@
 package commands;
 
-import static common.DependencyResolution.resolvePaths;
+import static common.DependencyResolution.mavenDeps;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import common.JdkResolver;
 import config.Config;
@@ -106,18 +104,16 @@ public class Start implements Runnable {
 			} else {
 				if (doExploded) {
 					command.add("-cp");
-					command.add(Config.outputDir().resolve("exploded").toString());
+					command.add(Config.outputExplodedDir().toString());
 				} else if (Files.exists(Path.of(".dep.runtime")) && !ignoreDepfiles) {
 					command.add("@.dep.runtime");
 				} else {
 					command.add("-cp");
 					command.add(
-						Stream
-							.concat(
-								resolvePaths(Scope.COMPILE, Scope.RUNTIME),
-								Stream.of(Config.outputClassesDir().toString())
-							)
-							.collect(Collectors.joining(":"))
+						mavenDeps().add(Scope.COMPILE, Scope.RUNTIME)
+							.classpath()
+							.add(Config.outputClassesDir())
+							.toString()
 					);
 				}
 				command.add(entrypoint.canonicalName());

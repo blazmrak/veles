@@ -53,6 +53,7 @@ public class ConfigDoc {
 		public String jdk;
 		public Project project = new Project();
 		public Compiler compiler = new Compiler();
+		public Tests test = new Tests();
 		public Format format = new Format();
 		public Native _native = new Native();
 
@@ -66,6 +67,10 @@ public class ConfigDoc {
 				var compilerVal = m.get("compiler");
 				if (compilerVal != null && compilerVal instanceof Map compiler) {
 					target.compiler = Compiler.parse(compiler);
+				}
+				var testVal = m.get("test");
+				if (testVal != null && testVal instanceof Map test) {
+					target.test = Tests.parse(test);
 				}
 				var nativeVal = m.get("native");
 				if (nativeVal != null && nativeVal instanceof Map _native) {
@@ -88,6 +93,32 @@ public class ConfigDoc {
 
 		public String toString() {
 			return "{" + "jdk: " + jdk + ", project: " + project + ", compiler: " + compiler + "}";
+		}
+
+		public static class Tests {
+			public String junitVersion = "6.0.0";
+			public String jacocoVersion = "0.8.14";
+
+			public static Tests parse(Object obj) {
+				var target = new Tests();
+				if (obj != null && obj instanceof Map m) {
+					var junitVersionVal = m.get("junitVersion");
+					if (junitVersionVal != null && junitVersionVal instanceof String val) {
+						target.junitVersion = val;
+					}
+					var jacocoVersionVal = m.get("jacocoVersion");
+					if (jacocoVersionVal != null && jacocoVersionVal instanceof String val) {
+						target.jacocoVersion = val;
+					}
+				}
+
+				return target;
+			}
+
+			public String toString() {
+				return "{" + "junitVersion: " + junitVersion + ", " + "jacocoVersion: " + jacocoVersion
+					+ "}";
+			}
 		}
 
 		public static class Format {
@@ -406,11 +437,20 @@ public class ConfigDoc {
 		public Gav(String gav) {
 			var gavSplit = gav.split(":");
 			if (gavSplit.length == 2) {
-				if (!gavSplit[0].isBlank()) {
-					artifactId = gavSplit[0];
-				}
-				if (!gavSplit[1].isBlank()) {
-					version = gavSplit[1];
+				if (Character.isDigit(gavSplit[1].charAt(0))) {
+					if (!gavSplit[0].isBlank()) {
+						artifactId = gavSplit[0];
+					}
+					if (!gavSplit[1].isBlank()) {
+						version = gavSplit[1];
+					}
+				} else {
+					if (!gavSplit[0].isBlank()) {
+						groupId = gavSplit[0];
+					}
+					if (!gavSplit[1].isBlank()) {
+						artifactId = gavSplit[1];
+					}
 				}
 			} else if (gavSplit.length >= 3) {
 				if (!gavSplit[0].isBlank()) {

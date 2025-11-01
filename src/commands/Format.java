@@ -6,8 +6,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import org.eclipse.jdt.core.ToolFactory;
 import org.eclipse.jdt.core.formatter.CodeFormatter;
+import org.eclipse.jdt.internal.formatter.DefaultCodeFormatter;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.Document;
 import org.eclipse.text.edits.MalformedTreeException;
@@ -111,17 +111,16 @@ public class Format implements Runnable {
 			? Paths.allSourceFiles()
 			: args.stream().map(Path::of);
 
-		var changes = files.parallel().map(sourcePath -> {
+		var changes = files.map(sourcePath -> {
 			String source = Paths.tryReadFile(sourcePath);
-			Document doc = new Document(source);
-			var changedBytes = formatCode(doc, options);
-			if (changedBytes == 0) {
+			var code = formatCode(source, options);
+			if (code.changedBytes() == 0) {
 				return null;
 			}
 
 			if (!executor.opts.dryRun && !failIfChanged) {
 				try {
-					Files.writeString(sourcePath, doc.get());
+					Files.writeString(sourcePath, code.code());
 				} catch (Exception e) {
 					System.out.println("Failed to write " + sourcePath + ": " + e.getMessage());
 					return null;
@@ -129,7 +128,7 @@ public class Format implements Runnable {
 			}
 
 			return show
-				? new FormatResult(sourcePath, doc.get())
+				? new FormatResult(sourcePath, code.code())
 				: new FormatResult(sourcePath, null);
 		}).filter(s -> s != null).toList();
 
@@ -155,19 +154,17 @@ public class Format implements Runnable {
 		}
 	}
 
-	private int formatCode(Document doc, Map<String, String> options) {
-		var formatter = ToolFactory.createCodeFormatter(options);
-		TextEdit edit = formatter.format(
-			CodeFormatter.K_COMPILATION_UNIT,
-			doc.get(),
-			0,
-			doc.get().length(),
-			0,
-			System.lineSeparator()
-		);
+	private record FormattedCode(String code, int changedBytes) {
+	}
+
+	private FormattedCode formatCode(String raw, Map<String, String> options) {
+		CodeFormatter formatter = new DefaultCodeFormatter(options);
+		TextEdit edit = formatter
+			.format(CodeFormatter.K_COMPILATION_UNIT, raw, 0, raw.length(), 0, "\n");
 		try {
+			var doc = new Document(raw);
 			edit.apply(doc);
-			return edit.getLength();
+			return new FormattedCode(doc.get(), edit.getLength());
 		} catch (MalformedTreeException | BadLocationException e) {
 			throw new RuntimeException(e);
 		}
