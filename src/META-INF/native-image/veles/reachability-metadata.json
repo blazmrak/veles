@@ -176,6 +176,9 @@
       ]
     },
     {
+      "type": "commands.Start$Target"
+    },
+    {
       "type": "common.VersionProvider",
       "methods": [
         {
@@ -4164,6 +4167,18 @@
           ]
         }
       ]
+    },
+    {
+      "type": "sun.text.resources.BreakIteratorInfo"
+    },
+    {
+      "type": "sun.text.resources.BreakIteratorResources"
+    },
+    {
+      "type": "sun.text.resources.BreakIteratorResources_en"
+    },
+    {
+      "type": "sun.text.resources.BreakIteratorResources_en_US"
     },
     {
       "type": {

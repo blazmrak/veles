@@ -167,7 +167,7 @@ public class Dev implements Runnable {
 
 					var run = new Start();
 					run.executor = executor;
-					run.doJar = doJar;
+					run.target.jar = doJar;
 					run.args = List.of(args.split(" "));
 					run.run();
 				});

@@ -37,6 +37,20 @@ public class Run implements Runnable {
 	)
 	String entrypoint;
 
+	/**
+	 * Use this if your native executable has issues. This will run GraalVM JVM using
+	 * `native-image-agent` with given arguments, which will merge the reachability metadata with
+	 * existing metadata inside `META-INF/native-image/<artifactId>`.
+	 *
+	 * This metadata is then used by the `native-image` GraalVM utility to generate the native
+	 * executable.
+	 */
+	@Option(
+		names = { "-r", "--native-reach" },
+		description = { "Use when native compilation is acting up" }
+	)
+	public boolean doReach;
+
 	@Option(names = { "-X", "--ignore-depfiles" }, description = { "Ignore .dep files" })
 	boolean ignoreDepfiles;
 
@@ -44,8 +58,17 @@ public class Run implements Runnable {
 	List<String> args = Collections.emptyList();
 
 	public void run() {
+		var entrypoint = Config.getEntrypoint(this.entrypoint);
 		var command = new ArrayList<String>();
-		command.add(JdkResolver.java().toString());
+		if (doReach) {
+			command.add(JdkResolver.graalJava().toString());
+			command.add(
+				"-agentlib:native-image-agent=" + "config-merge-dir="
+					+ entrypoint.sourceDir().resolve("META-INF", "native-image", Config.getArtifactId())
+			);
+		} else {
+			command.add(JdkResolver.java().toString());
+		}
 		if (Files.exists(Path.of(".dep.nocomp")) && !ignoreDepfiles) {
 			command.add("@.dep.nocomp");
 		} else {
@@ -60,7 +83,7 @@ public class Run implements Runnable {
 		if (Config.isPreviewEnabled()) {
 			command.add("--enable-preview");
 		}
-		command.add(Config.getEntrypoint(this.entrypoint).filePath().toString());
+		command.add(entrypoint.filePath().toString());
 		command.addAll(args);
 
 		if (!watch) {
