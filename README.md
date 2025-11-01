@@ -60,9 +60,7 @@ via `veles export`.
 
 ## Non-goals
 
-- Be a full blown build tool
-- Support traditional IDEs
-- Support Windows, at least for now
+- Be a build tool
 - Support JDK <24
 - Support any other JVM languages
 
@@ -148,6 +146,16 @@ To run we can still just use `veles run`. Now run `curl http://localhost:8080` a
 pat yourself on the back for having an HTTP server up and running without the
 build tool ceremony.
 
+### Editor
+
+Your editor or IDE is probably complaining that Javalin doesn't exist.
+
+Run `veles lsp`. This will generate the `pom.xml`, but you will probably also
+need to refresh the config or restart the language server to see the changes
+(`:JdtUpdateConfig` or `:JdtRestart` if you are on LazyVim Neovim distro for
+example) or if don't know how to do either, restart the editor. You should now
+be in a company of a happy language server once again.
+
 ### Project Leyden
 
 If you are using Java 25, you can make a training run by using `veles start --train`
@@ -167,16 +175,6 @@ directory. You should commit this to git, because not all paths might be hit
 during a reachability run, so it is important that the new entries are merged
 with the existing reachability data.
 
-### Editor
-
-If you are using VS Code or Neovim, you are probably using the Eclipse language
-server (LS). And it is complaining because it is certain that Javalin does not exist.
-
-Run `veles lsp`. This will generate the necessary files for JdtLS, but you will
-need to refresh the config or restart the LS (`:JdtUpdateConfig` or `:JdtRestart`
-if you are on LazyVim Neovim distro for example) or if don't know how to do either,
-restart the editor. You should now be in a company of a happy and useful LS.
-
 ### Formatting
 
 This is my personal gripe with Java, but a lack of a standard formatting tool
@@ -184,9 +182,14 @@ and format is a massive PITA for collaboration. For this reason I have implement
 formatting by using Eclipse Formatter, and set sane defaults, so that you don't
 have to battle your way through infinite amount of knobs. This format is still
 subject to change for settings that are the default now. And it's not always the
-way I would like it, but it is at least bearable. JdtLS should pick up the
-settings automatically and should format the files accordingly. Veles reuses the
-settings from `.settings/*.pref`.
+way I would like it, but it is at least bearable.
+
+Formatter configuration generated when running `veles lsp` and is located inside
+`.settings/format.xml` and is treated as the source of truth. If you use an editor
+such as VSCode or Neovim, the settings should be automatically picked up, because
+`*.pref` file is also generated, all you need to do is restart JdtLS. For people
+using IDEs, you should use the plugin for Eclipse Formatter and point it to the
+XML configuration file.
 
 I chose Eclipse by default, because it is integrated into the JdtLS.
 If you don't want to use Eclipse, then I have also added the option of using
@@ -196,6 +199,9 @@ to disagree and be wrong.
 
 Also, tabs over spaces, so that we don't have to debate 2 vs 4 and everyone
 can set their preference in their editor.
+
+> **Note**: you are free to override any of the settings, Veles won't override
+> your changes, but will add anything that you didn't specify
 
 ### Resources
 
@@ -207,10 +213,70 @@ end up mashed together in the final artifact anyways. So just put non
 `.java` files inside whatever your source directory is, alongside your
 source code. I haven't thought of a case, where this isn't a win.
 
+## So why another build tool?
+
+This question constantly pops up in a number of different forms. The answer
+is simple: Veles is **not a build tool**, unless you think JDK is a build tool.
+The difference is subtle, but important. Build tools like Maven, Gradle, Mill,
+etc. etc. don't know how to compile your code and run your tests, the Maven
+and Gradle plugins do. The job of these tools is to define the pipeline your
+code must go through in order for it to be "built" and you can customize it
+pretty much as much as you want. All this to say, build tools concern
+themselves with planning, not doing.
+
+Veles does not care about that, it just carries out common operations with a simpler
+CLI API. You could use Veles in a Maven or Gradle plugin, but that would not make
+much sense, because the plugins for stuff that Veles does already exist... It is
+why it is possible to generate the `pom.xml` that behaves the same. It is also why
+that `pom.xml` is 100s of lines long.
+
+> Ok buddy, all I hear is a whole bunch of excuses for what is just a shitty
+> build tool
+
+I hear you and it might as well be true. But the goal was to be just this,
+to raise the bar for what is possible to achieve in a simpler way.
+For any project that I do, I will need dependencies, I would like to run tests
+and I would like to have a standard code format that doesn't suck and I don't
+want to think about any of this, this is the stuff that the JDK should provide
+and do so in a nicer way than it currently does. Yes, this project could have
+been a template, but I don't want to maintain that kind of configuration,
+especially because it is not standard and I'm still left with a bad CLI
+experience.
+
+I think this is even more important if you don't deal with Java every day or if
+you would want to learn Java. The fact that the new comers have to first learn
+the equivalent of Webpack or Groovy/Kotlin, just because they wanted to use a
+library, in 2025, or any year for that matter, is... absurd... to me at least.
+I haven't had this experience anywhere else, with exception to C.
+
+I bluit Veles to be a smaller step up if you come from just using the
+JDK, than any build tool is. The commands are analogous to what you do when
+using the JDK, it's just that the arguments are autofilled for you. It's also
+easy to see what is actually happening under the covers. I also purposefully
+made it easy to eject either way - back to the JDK or forward to Maven.
+
+### But what about the frameworks?
+
+I will only do what the JDK can. If you want to use Hibernate, Quarkus, Micronaut,
+Spring and other frameworks that need plugins for building, you should just use a
+proper build tool that is officially supported. I do however think that the
+complexity of these frameworks is waved away too often and I do think there is
+something nice about the Go's philosophy and seeing all the code that will run
+however tedious it might seem at first.
+
+If you want to script, you can lean more heavily into reflection
+and can just run without having to compile. If you care about startup/performance,
+you can avoid reflection with the [Avaje Project](https://avaje.io/) while still getting similar
+developer experience to Jakarta/Spring. If you are coming from other ecosystems,
+[Javalin](https://github.com/javalin/javalin) and [Jooby](https://github.com/jooby-project/jooby)
+have a similar feel to the frameworks that are used there.
+If you have to work with a database, you can replace Hibernate with [jOOQ](https://github.com/jOOQ/jOOQ)
+or [Doma](https://github.com/domaframework/doma).
+
 ## Commands
 
-The ones with `#[x]` are implemented, the ones with `#[-]` have partial support. Others are
-ideas/plans.
+The ones with `#[x]` are implemented, the ones with `#[-]` have partial support.
+Others are ideas/plans.
 
 ```sh
 veles run --watch             # [x]
@@ -243,8 +309,6 @@ veles test --watch
 
 veles install
 veles publish
-
-veles export --maven          # [x]
 
 veles lsp                     # [x]
 veles format                  # [x]
