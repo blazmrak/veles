@@ -71,4 +71,3 @@ org.eclipse.jdt.core.formatter.comment.indent_root_tags=true
 org.eclipse.jdt.core.compiler.codegen.targetPlatform=25
 org.eclipse.jdt.core.compiler.compliance=25
 org.eclipse.jdt.core.compiler.release=disabled
-org.eclipse.jdt.core.compiler.source=25

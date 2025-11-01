@@ -82,7 +82,7 @@ public class Paths {
 				@Override
 				public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
 					if (!Files.isHidden(file)) {
-						files.add(file);
+						files.add(file.subpath(1, file.getNameCount()));
 					}
 
 					return FileVisitResult.CONTINUE;

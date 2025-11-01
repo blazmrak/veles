@@ -5,9 +5,18 @@ import static java.util.stream.Collectors.joining;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 import common.MavenPom;
 import common.Paths;
@@ -18,37 +27,25 @@ import picocli.CommandLine.Option;
 @Command(name = "lsp", description = { "Generate files for JdtLS language server" })
 public class Lsp implements Runnable {
 	private static final Path CORE_PREFS_PATH = Path.of(".settings", "org.eclipse.jdt.core.prefs");
+	private static final Path FORMAT_XML_PATH = Path.of(".settings", "format.xml");
 
 	@Option(names = { "-d", "--documentation" })
 	boolean pullDocumentation;
 
 	public void run() {
 		updateEditorConfig();
-		// formatter must be before JdtLS settings
-		updateFormatterXml();
-		configureSettings();
+		updateFormatterSettings();
 		MavenPom.generatePomXml();
 	}
 
-	public void configureSettings() {
-		Paths.ensureDirExists(Path.of(".settings"));
-		updateCorePreferences();
-	}
-
 	public Map<String, String> readFormatterSettings() {
-		try {
-			return readFormatterSettingsFromFile();
-		} catch (Throwable e) {
-			configureSettings();
-			return readFormatterSettingsFromFile();
+		var settings = readFormatterXml();
+		if (settings == null) {
+			updateFormatterSettings();
+			return readFormatterXml();
+		} else {
+			return readFormatterXml();
 		}
-	}
-
-	private Map<String, String> readFormatterSettingsFromFile() {
-		return parsePrefs(CORE_PREFS_PATH).entrySet()
-			.stream()
-			.filter(e -> !e.getKey().startsWith("#") && e.getKey().contains("formatter"))
-			.collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
 	}
 
 	private void updateEditorConfig() {
@@ -79,11 +76,20 @@ public class Lsp implements Runnable {
 		}
 	}
 
+	private void updateFormatterSettings() {
+		Paths.ensureDirExists(Path.of(".settings"));
+		updateFormatterXml();
+		updateJdtlsPrefs();
+	}
+
 	private void updateFormatterXml() {
-		var currentPrefs = parsePrefs(CORE_PREFS_PATH);
+		var currentSettings = readFormatterXml();
+		if (currentSettings == null) {
+			currentSettings = parsePrefs(CORE_PREFS_PATH);
+		}
 		var defaultPrefs = defaultFormatterPrefs();
 
-		currentPrefs.forEach((k, v) -> {
+		currentSettings.forEach((k, v) -> {
 			if (k.contains("formatter")) {
 				defaultPrefs.put(k, v);
 			}
@@ -113,13 +119,38 @@ public class Lsp implements Runnable {
 		);
 
 		try {
-			Files.writeString(Path.of(".settings", "format.xml"), format);
+			Files.writeString(FORMAT_XML_PATH, format);
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
 	}
 
-	private void updateCorePreferences() {
+	private Map<String, String> readFormatterXml() {
+		try {
+			var dbFactory = DocumentBuilderFactory.newInstance();
+			var dBuilder = dbFactory.newDocumentBuilder();
+			Document doc = dBuilder.parse(FORMAT_XML_PATH.toFile());
+			doc.getDocumentElement().normalize();
+			NodeList list = doc.getElementsByTagName("setting");
+			var result = new HashMap<String, String>();
+			for (var i = 0; i < list.getLength(); i++) {
+				switch (list.item(i)) {
+					case Element el -> {
+						var id = el.getAttribute("id");
+						var value = el.getAttribute("value");
+						result.put(id, value);
+					}
+					default -> {
+					}
+				}
+			}
+			return result;
+		} catch (SAXException | IOException | ParserConfigurationException e) {
+			return null;
+		}
+	}
+
+	private void updateJdtlsPrefs() {
 		var currentPrefs = parsePrefs(CORE_PREFS_PATH);
 		var defaultPrefs = defaultCorePrefs();
 
@@ -127,32 +158,26 @@ public class Lsp implements Runnable {
 			defaultPrefs.put(k, v);
 		});
 
-		defaultPrefs
-			.put("org.eclipse.jdt.core.formatter.lineSplit", String.valueOf(Config.getLineWidth()));
-		defaultPrefs.put(
-			"org.eclipse.jdt.core.formatter.comment.line_length",
-			String.valueOf(Config.getLineWidth())
-		);
-		defaultPrefs
-			.put("org.eclipse.jdt.core.formatter.tabulation.char", Config.getIndent().toString());
+		readFormatterXml().forEach((k, v) -> {
+			defaultPrefs.put(k, v);
+		});
+
 		defaultPrefs.put(
 			"org.eclipse.jdt.core.compiler.problem.enablePreviewFeatures",
 			Config.isPreviewEnabled()
 				? "enabled"
 				: "disabled"
 		);
-		defaultPrefs
-			.put("org.eclipse.jdt.core.formatter.tabulation.char", Config.getIndent().toString());
-
-		var newPrefs = defaultPrefs.entrySet()
-			.stream()
-			.map(s -> s.getKey() + "=" + s.getValue())
-			.collect(Collectors.joining("\n"));
 
 		if (Config.getRelease() == 0) {
 			defaultPrefs.remove("org.eclipse.jdt.core.compiler.source");
 			defaultPrefs.remove("org.eclipse.jdt.core.compiler.target");
 		}
+
+		var newPrefs = defaultPrefs.entrySet()
+			.stream()
+			.map(s -> s.getKey() + "=" + s.getValue())
+			.collect(Collectors.joining("\n"));
 
 		write(CORE_PREFS_PATH, newPrefs);
 	}
@@ -173,8 +198,6 @@ public class Lsp implements Runnable {
 		newMap.put("org.eclipse.jdt.core.compiler.problem.forbiddenReference", "warning");
 		newMap.put("org.eclipse.jdt.core.compiler.problem.reportPreviewFeatures", "ignore");
 		newMap.put("org.eclipse.jdt.core.compiler.processAnnotations", "enabled");
-
-		newMap.putAll(defaultFormatterPrefs());
 
 		return newMap;
 	}

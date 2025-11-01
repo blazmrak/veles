@@ -14,6 +14,7 @@ import java.util.List;
 import org.jline.terminal.TerminalBuilder;
 
 import commands.widgets.MavenSearchWidget;
+import common.MavenPom;
 import config.Config;
 import config.ConfigDoc.ConfDependency;
 import config.ConfigDoc.ConfDependency.Scope;
@@ -42,6 +43,9 @@ public class Dep implements Runnable {
 				|| exists(Path.of(".dep.testcomp"))
 				|| exists(Path.of(".dep.test"))) {
 				this.save(materialize);
+			}
+			if (exists(Path.of("pom.xml"))) {
+				MavenPom.generatePomXml();
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
