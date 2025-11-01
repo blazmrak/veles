@@ -3,7 +3,6 @@ import org.slf4j.LoggerFactory;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import commands.Compile;
-import commands.Configure;
 import commands.Dep;
 import commands.Dev;
 import commands.Format;
@@ -35,7 +34,6 @@ public class App {
 			.addSubcommand(new Dep())
 			.addSubcommand(new Lsp())
 			.addSubcommand(new Format())
-			.addSubcommand(new Configure())
 			.addSubcommand(new GenerateCompletion())
 			.execute(args);
 	}
