@@ -12,3 +12,4 @@ package*
 .project
 .settings/org.eclipse.jdt.apt*
 .settings/org.eclipse.m2e*
+pom.xml
