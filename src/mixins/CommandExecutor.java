@@ -6,8 +6,12 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import picocli.CommandLine.Mixin;
+import picocli.CommandLine.Spec;
+import picocli.CommandLine.Model.CommandSpec;
 
 public class CommandExecutor {
+	@Spec
+	CommandSpec spec;
 	private boolean quiet;
 	private Function<ProcessBuilder, Process> processBuilderDecorator = (builder) -> {
 		try {
@@ -35,8 +39,8 @@ public class CommandExecutor {
 
 	public Process execute(List<String> command) {
 		if (opts.verbose || opts.dryRun) {
-			System.out.println();
-			System.out.println(prettyFormatCommand(command));
+			spec.commandLine().getOut().println();
+			spec.commandLine().getOut().println(prettyFormatCommand(command));
 		}
 
 		if (opts.dryRun) {

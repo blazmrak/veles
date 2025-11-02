@@ -1,10 +1,16 @@
 package utils;
 
+import static utils.Executor.ProcessSandbox.ExecutionResult;
+
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 
 import common.CliCommand;
+import picocli.CommandLine;
 
 public class Executor {
 
@@ -13,30 +19,63 @@ public class Executor {
 		return p.waitFor();
 	}
 
+	public static class CommandSandbox {
+		private final Runnable command;
+
+		public CommandSandbox(Runnable command) {
+			this.command = command;
+		}
+
+		public ExecutionResult execute(String... args) {
+			var cmd = new CommandLine(this.command);
+
+			var out = new StringWriter();
+			var err = new StringWriter();
+			cmd.setOut(new PrintWriter(out));
+			cmd.setErr(new PrintWriter(err));
+
+			var dryArgs = Arrays.copyOf(args, args.length + 1);
+			dryArgs[dryArgs.length - 1] = "-N";
+			var exitCode = cmd.execute(dryArgs);
+
+			return new ExecutionResult(
+				new CliCommand("noop").args(args),
+				exitCode,
+				out.toString(),
+				err.toString()
+			);
+		}
+	}
+
 	public static class ProcessSandbox {
-		public final CliCommand command;
+		private final CliCommand command;
 		public final String name;
-		private final ProcessBuilder pb;
-		private final Path output;
+		public Path directory = Path.of(".");
+		private final Path out;
+		private final Path err;
 
 		public ProcessSandbox(String name, CliCommand command) {
 			this.name = name;
 			this.command = command;
 			try {
-				output = Files.createTempFile("output", ".txt");
+				out = Files.createTempFile("out", ".txt");
+				err = Files.createTempFile("err", ".txt");
 			} catch (IOException e) {
 				throw new RuntimeException(e);
 			}
-			pb = new ProcessBuilder(command.get()).redirectOutput(output.toFile())
-				.redirectError(output.toFile());
 		}
 
-		public void execute() {
+		public ExecutionResult execute(String... args) {
 			try {
-				var res = pb.start().waitFor();
-				if (res != 0) {
-					throw new RuntimeException(Files.readString(output));
-				}
+				command.args(args);
+
+				var exitCode = new ProcessBuilder().command(command.get())
+					.directory(directory.toFile())
+					.redirectOutput(out.toFile())
+					.redirectError(err.toFile())
+					.start()
+					.waitFor();
+				return new ExecutionResult(command, exitCode, Files.readString(out), Files.readString(err));
 			} catch (InterruptedException | IOException e) {
 				throw new RuntimeException(e);
 			}
@@ -44,7 +83,7 @@ public class Executor {
 
 		public String output() {
 			try {
-				return Files.readString(this.output);
+				return Files.readString(this.out);
 			} catch (IOException e) {
 				throw new RuntimeException(e);
 			}
@@ -53,6 +92,24 @@ public class Executor {
 		@Override
 		public String toString() {
 			return name;
+		}
+
+		public static record ExecutionResult(CliCommand command, int code, String out, String err) {
+			@Override
+			public String toString() {
+				return """
+					EXIT: %d
+					OUT:
+					%s
+					---------------
+					ERR:
+					%s
+					""".formatted(code, out, err);
+			}
+
+			public boolean failed() {
+				return code != 0;
+			}
 		}
 	}
 }

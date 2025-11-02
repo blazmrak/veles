@@ -2,6 +2,7 @@ package commands;
 
 import static common.DependencyResolution.mavenDeps;
 import static common.DependencyResolution.resolvePaths;
+import static common.FilesUtil.deleteDir;
 import static config.Config.jacocoVersion;
 import static config.Config.junitVersion;
 import static java.util.stream.Collectors.joining;
@@ -78,7 +79,7 @@ public class Compile implements Runnable {
 
 	@Option(
 		names = { "-I", "--integration-quick" },
-		description = { "Skip integrationt tests tagged with 'slow'" }
+		description = { "Skip integration tests tagged with 'slow'" }
 	)
 	boolean doIntegrationQuick;
 
@@ -454,20 +455,6 @@ public class Compile implements Runnable {
 		);
 
 		executor.executeBlocking(command);
-	}
-
-	private static void deleteDir(Path dest) {
-		try (var files = Files.walk(dest)) {
-			files.forEach((path) -> {
-				try {
-					Files.delete(path);
-				} catch (IOException e) {
-					new RuntimeException(e);
-				}
-			});
-		} catch (IOException e) {
-			new RuntimeException(e);
-		}
 	}
 
 	private static void copyResources(Path source, Path target) {

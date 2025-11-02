@@ -1,5 +1,8 @@
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 import org.junit.jupiter.api.DisplayNameGenerator.IndicativeSentences.SentenceFragment;
 import org.junit.jupiter.api.IndicativeSentencesGeneration;
@@ -16,13 +19,8 @@ public class VersionIT {
 	@SentenceFragment("prints the version")
 	@ParameterizedTest
 	@ArgumentsSource(ExecArgumentProvider.class)
-	public void test(ProcessSandbox process) {
-		process.command.add("--version");
-		process.execute();
-		if ("true".equals(System.getenv("CI"))) {
-			assertNotEquals("local\n", process.output());
-		} else {
-			assertEquals("local\n", process.output());
-		}
+	public void test(ProcessSandbox process) throws IOException {
+		var result = process.execute("--version");
+		assertThat(result.out().strip()).isEqualTo(Files.readString(Path.of("src", "VERSION")).strip());
 	}
 }

@@ -14,3 +14,4 @@ dependencies:
   - io.avaje:avaje-jsonb:3.7
   - "@io.avaje:avaje-jsonb-generator:3.7"
   - org.eclipse.jdt:org.eclipse.jdt.core:3.43.0
+  - "!org.assertj:assertj-core:3.27.6"

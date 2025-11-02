@@ -20,7 +20,11 @@ import picocli.CommandLine.Mixin;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
-@Command(name = "run", description = "Run .java files directly leveraging JEP-458")
+@Command(
+	name = "run",
+	description = "Run .java files directly leveraging JEP-458",
+	mixinStandardHelpOptions = true
+)
 public class Run implements Runnable {
 	@Mixin
 	CommandExecutor executor;

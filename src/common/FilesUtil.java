@@ -96,4 +96,34 @@ public class FilesUtil {
 
 		return files.stream();
 	}
+
+	public static void deleteDir(Path dir) {
+		try {
+			Files.walkFileTree(dir, new SimpleFileVisitor<Path>() {
+				@Override
+				public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+					try {
+						Files.delete(dir);
+					} catch (IOException e) {
+						new RuntimeException(e);
+					}
+
+					return FileVisitResult.CONTINUE;
+				}
+
+				@Override
+				public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+					try {
+						Files.delete(file);
+					} catch (IOException e) {
+						new RuntimeException(e);
+					}
+					return FileVisitResult.CONTINUE;
+				}
+
+			});
+		} catch (Exception e) {
+			new RuntimeException(e);
+		}
+	}
 }

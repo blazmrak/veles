@@ -1,0 +1,56 @@
+name: Build uber jar
+description: Action for building uber jar
+
+inputs:
+  os:
+    description: Operating system
+    required: true
+  arch:
+    description: CPU architecture
+    required: true
+  github-token:
+    description: GitHub token
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - uses: graalvm/setup-graalvm@v1
+      with:
+        java-version: "25.0.1"
+        distribution: "graalvm"
+        github-token: ${{ inputs.GITHUB_TOKEN }}
+        native-image-job-reports: "true"
+    - uses: actions/download-artifact@v5
+      with:
+        name: veles-jar
+        path: ./artifact
+
+    - name: Build executable
+      shell: bash
+      run: |
+        mkdir target
+        java -jar ./artifact/app-uber.jar --version > src/VERSION
+        java -jar ./artifact/app-uber.jar compile -tjuUni --verbose
+
+    - name: Package executable UNIX
+      shell: bash
+      if: inputs.os != 'windows'
+      run: |
+        cd target
+        tar -czf ../veles-${{ inputs.os }}-${{ inputs.arch }}.tar.gz veles
+        cd ..
+
+    - name: Package executable WIN
+      shell: bash
+      if: inputs.os == 'windows'
+      run: |
+        cd target
+        tar -czf ../veles-${{ inputs.os }}-${{ inputs.arch }}.tar.gz veles.exe
+        cd ..
+
+    - name: Upload binary
+      uses: actions/upload-artifact@v4
+      with:
+        name: veles-${{ inputs.os }}-${{ inputs.arch }}
+        path: veles-${{ inputs.os }}-${{ inputs.arch }}.tar.gz
