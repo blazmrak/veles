@@ -156,7 +156,7 @@ public class Dev implements Runnable {
 
 					var compile = new Compile();
 					compile.executor = executor;
-					compile.doJar = doJar;
+					compile.packaging.doJar = doJar;
 					compile.run();
 
 					logFeed.append("");

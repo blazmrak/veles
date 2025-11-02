@@ -28,12 +28,17 @@ import config.ConfigDoc.ConfDependency;
 import config.ConfigDoc.ConfDependency.Scope;
 import config.ConfigDoc.Gav;
 import mixins.CommandExecutor;
+import picocli.CommandLine.ArgGroup;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Mixin;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
-@Command(name = "compile", description = { "Compile .java files" })
+@Command(
+	name = "compile",
+	description = { "Compile and package .java files",
+		"Phases: clean -> compile -> unit test -> package -> integration test" }
+)
 public class Compile implements Runnable {
 	@Mixin
 	CommandExecutor executor;
@@ -47,60 +52,72 @@ public class Compile implements Runnable {
 	@Option(names = { "-S", "--skip-compile" }, description = { "Skip compilation step" })
 	boolean skipCompile;
 
-	@Option(names = { "-t", "--unit-test" }, description = { "Run unit tests" })
-	boolean doUnit;
-
-	@Option(names = { "-T", "--unit-quick" }, description = { "Skip unit tests tagged with 'slow'" })
-	boolean doUnitQuick;
-
-	@Option(names = { "-j", "--jar" }, description = { "Package classes as a .jar file" })
-	boolean doJar;
-
-	@Option(names = { "-n", "--native" }, description = { "Package classes as a native executable" })
-	boolean doNative;
-
-	@Option(names = { "-z", "--zip" }, description = { "Package libs and .jar into a .zip" })
-	boolean doZip;
-
-	@Option(
-		names = { "-d", "--docker" },
-		description = { "Package libs and .jar into a docker image" }
-	)
-	boolean doDocker;
-
-	@Option(names = { "-u", "--uber" }, description = { "Package libs into a single .jar" })
-	boolean doUber;
-
-	@Option(names = { "-U", "--exploded" }, description = { "Unzip the uber jar" })
-	boolean doExploded;
-
-	@Option(names = { "-i", "--integration-test" }, description = { "Run integration tests" })
-	boolean doIntegration;
-
-	@Option(
-		names = { "-I", "--integration-quick" },
-		description = { "Skip integration tests tagged with 'slow'" }
-	)
-	boolean doIntegrationQuick;
-
-	@Option(names = { "-O", "--only" }, description = { "Run only the tests that have 'only' tag" })
-	boolean runOnly;
-
-	@Option(
-		names = { "-f", "--filter" },
-		description = { "Equivalent to JUnit --include-methodname, used for filtering tests" },
-		arity = "1..*"
-	)
-	List<String> filterPatterns = Collections.emptyList();
-
-	@Option(names = { "--cover" }, description = { "Produce coverage report" })
-	boolean doCover;
-
 	@Option(names = { "-e", "--entrypoint" }, description = { "Entrypoint for the java program" })
 	String entrypoint;
 
 	@Option(names = { "-X", "--ignore-depfiles" }, description = { "Ignore .dep files" })
 	boolean ignoreDepfiles;
+
+	@ArgGroup(exclusive = false, heading = "Packaging:\n")
+	Packaging packaging = new Packaging();
+
+	public static class Packaging {
+		@Option(names = { "-j", "--jar" }, description = { "Package classes as a .jar file" })
+		boolean doJar;
+
+		@Option(
+			names = { "-n", "--native" },
+			description = { "Package classes as a native executable" }
+		)
+		boolean doNative;
+
+		@Option(names = { "-z", "--zip" }, description = { "Package libs and .jar into a .zip" })
+		boolean doZip;
+
+		@Option(
+			names = { "-d", "--docker" },
+			description = { "Package libs and .jar into a docker image" }
+		)
+		boolean doDocker;
+
+		@Option(names = { "-u", "--uber" }, description = { "Package libs into a single .jar" })
+		boolean doUber;
+
+		@Option(names = { "-U", "--exploded" }, description = { "Unzip the uber jar" })
+		boolean doExploded;
+	}
+
+	@ArgGroup(exclusive = false, heading = "Testing:\n")
+	Testing testing = new Testing();
+
+	public static class Testing {
+		@Option(
+			names = { "-t", "--unit-test" },
+			description = { "Run unit tests", "Specified twice (-tt) excludes 'slow' tag",
+				"Specified thrice (-ttt) only runs 'fast' tag" }
+		)
+		boolean[] doUnit = new boolean[0];
+
+		@Option(
+			names = { "-i", "--integration-test" },
+			description = { "Run integration tests", "Specified twice (-ii) excludes 'slow' tag",
+				"Specified thrice (-iii) only runs 'fast' tag" }
+		)
+		boolean[] doIntegration = new boolean[0];
+
+		@Option(names = { "--cover" }, description = { "Produce coverage report" }, order = 3)
+		boolean doCover;
+
+		@Option(names = { "-O", "--only" }, description = { "Run only the tests that have 'only' tag" })
+		boolean runOnly;
+
+		@Option(
+			names = { "-f", "--filter" },
+			description = { "Equivalent to JUnit --include-methodname, used for filtering tests" },
+			arity = "1..*"
+		)
+		List<String> filterPatterns = Collections.emptyList();
+	}
 
 	@Parameters
 	List<String> args = Collections.emptyList();
@@ -114,43 +131,43 @@ public class Compile implements Runnable {
 			compile();
 		}
 
-		if (doUnit) {
+		if (testing.doUnit.length > 0) {
 			testCompile();
 			unitTestRun();
 		}
 
-		if (doJar || doZip || doDocker || doUber) {
+		if (packaging.doJar || packaging.doZip || packaging.doDocker || packaging.doUber) {
 			jar();
 		}
 
-		if (doZip) {
+		if (packaging.doZip) {
 			zip();
 		}
 
-		if (doDocker) {
+		if (packaging.doDocker) {
 			docker();
 		}
 
-		if (doUber || doExploded) {
+		if (packaging.doUber || packaging.doExploded) {
 			uber();
 		}
 
-		if (doExploded) {
+		if (packaging.doExploded) {
 			exploded();
 		}
 
-		if (doNative) {
+		if (packaging.doNative) {
 			_native();
 		}
 
-		if (doIntegration) {
-			if (!doUnit) {
+		if (testing.doIntegration.length > 0) {
+			if (testing.doUnit.length == 0) {
 				testCompile();
 			}
 			integrationTestRun();
 		}
 
-		if (doCover) {
+		if (testing.doCover) {
 			generateCoverageReport();
 		}
 	}
@@ -235,11 +252,16 @@ public class Compile implements Runnable {
 
 	private void unitTestRun() {
 		var command = testCommand();
+		command.add("--include-classname");
+		command.add(".*Test$");
 		command.add("--reports-dir");
 		command.add(Config.outputDir().resolve("test-reports", "junit-unit").toString());
-		if (doUnitQuick) {
+		if (testing.doUnit.length == 2) {
 			command.add("--exclude-tag");
 			command.add("slow");
+		} else if (testing.doUnit.length == 3) {
+			command.add("--include-tag");
+			command.add("fast");
 		}
 
 		var res = executor.executeBlocking(command);
@@ -254,9 +276,12 @@ public class Compile implements Runnable {
 		command.add(".*IT$");
 		command.add("--reports-dir");
 		command.add(Config.outputDir().resolve("test-reports", "junit-integration").toString());
-		if (doIntegrationQuick) {
+		if (testing.doIntegration.length == 2) {
 			command.add("--exclude-tag");
 			command.add("slow");
+		} else if (testing.doIntegration.length == 3) {
+			command.add("--include-tag");
+			command.add("fast");
 		}
 
 		var res = executor.executeBlocking(command);
@@ -268,7 +293,7 @@ public class Compile implements Runnable {
 	private List<String> testCommand() {
 		var command = new ArrayList<String>();
 		command.add(JdkResolver.java().toString());
-		if (doCover) {
+		if (testing.doCover) {
 			var agent = DependencyResolution
 				.getArtifact(new Gav("org.jacoco:org.jacoco.agent:" + jacocoVersion()), "runtime")
 				.getFile()
@@ -303,11 +328,11 @@ public class Compile implements Runnable {
 		command.add("--scan-class-path");
 		command.add("--disable-banner");
 		command.add("--fail-if-no-tests");
-		if (runOnly) {
+		if (testing.runOnly) {
 			command.add("--include-tag");
 			command.add("only");
 		}
-		filterPatterns.forEach(pattern -> {
+		testing.filterPatterns.forEach(pattern -> {
 			command.add("--include-methodname");
 			command.add(pattern);
 		});
@@ -369,7 +394,7 @@ public class Compile implements Runnable {
 	 */
 	private void _native() {
 		List<String> command = null;
-		if (doUber) {
+		if (packaging.doUber) {
 			command = List.of(
 				JdkResolver.nativeImage().toString(),
 				"-jar",
@@ -466,7 +491,7 @@ public class Compile implements Runnable {
 			deleteDir(Config.outputDir());
 		} else {
 			deleteDir(Config.outputClassesDir());
-			if (doUnit || doIntegration) {
+			if (testing.doUnit.length > 0 || testing.doIntegration.length > 0) {
 				deleteDir(Config.outputTestClassesDir());
 				deleteDir(Config.outputDir().resolve("test-reports"));
 			}

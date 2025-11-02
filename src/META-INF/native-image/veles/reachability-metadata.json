@@ -5,6 +5,9 @@
       "allDeclaredFields": true
     },
     {
+      "type": "boolean[]"
+    },
+    {
       "type": "ch.qos.logback.classic.spi.LogbackServiceProvider"
     },
     {
@@ -106,6 +109,61 @@
     {
       "type": "commands.Compile",
       "allDeclaredFields": true
+    },
+    {
+      "type": "commands.Compile$Packaging",
+      "fields": [
+        {
+          "name": "doDocker"
+        },
+        {
+          "name": "doExploded"
+        },
+        {
+          "name": "doJar"
+        },
+        {
+          "name": "doNative"
+        },
+        {
+          "name": "doUber"
+        },
+        {
+          "name": "doZip"
+        }
+      ],
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "commands.Compile$Testing",
+      "fields": [
+        {
+          "name": "doCover"
+        },
+        {
+          "name": "doIntegration"
+        },
+        {
+          "name": "doUnit"
+        },
+        {
+          "name": "filterPatterns"
+        },
+        {
+          "name": "runOnly"
+        }
+      ],
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
     },
     {
       "type": "commands.Configure"

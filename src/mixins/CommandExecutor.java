@@ -5,9 +5,9 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import picocli.CommandLine.Mixin;
-import picocli.CommandLine.Spec;
+import picocli.CommandLine.ArgGroup;
 import picocli.CommandLine.Model.CommandSpec;
+import picocli.CommandLine.Spec;
 
 public class CommandExecutor {
 	@Spec
@@ -21,8 +21,8 @@ public class CommandExecutor {
 		}
 	};
 
-	@Mixin
-	public CommonOptions opts;
+	@ArgGroup(heading = "Common:\n", order = 1000)
+	public CommonOptions opts = new CommonOptions();
 
 	public int executeBlocking(List<String> command) {
 		try {

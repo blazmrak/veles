@@ -14,6 +14,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ArgumentsSource;
 
 import utils.ExecArgumentProvider;
+import utils.Fast;
 import utils.Executor.ProcessSandbox;
 
 @SentenceFragment("Run command")
@@ -24,6 +25,7 @@ public class RunIT {
 	@SentenceFragment("shows help")
 	@ParameterizedTest
 	@ArgumentsSource(ExecArgumentProvider.class)
+	@Fast
 	public void help(ProcessSandbox sandbox) {
 		sandbox.directory = codeDir;
 
