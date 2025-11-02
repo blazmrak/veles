@@ -43,6 +43,7 @@ jobs:
             arch: x86_64
             runner: windows-latest
     steps:
+      - uses: actions/checkout@v4
       - uses: ./.github/actions/native
         with:
           os: ${{ matrix.os }}
