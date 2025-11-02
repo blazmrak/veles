@@ -1,0 +1,48 @@
+name: Build
+on:
+  pull_request:
+
+permissions:
+  contents: write
+
+jobs:
+  build-jar:
+    name: Build uber jar
+    runs-on: ubuntu-latest
+    env:
+      veles-version: 0.1.0
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/jar
+
+  build-native-linux:
+    name: Build on linux
+    runs-on: ubuntu-latest
+    needs: build-jar
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/native
+        with:
+          os: linux
+          arch: x86_64
+
+  build-native-other:
+    name: Build on ${{ matrix.os }} ${{ matrix.arch }}
+    runs-on: ${{ matrix.runner }}
+    needs: build-native-linux
+    strategy:
+      matrix:
+        include:
+          - os: macos
+            arch: arm64
+            runner: macos-14
+          - os: windows
+            arch: x86_64
+            runner: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/native
+        with:
+          os: ${{ matrix.os }}
+          arch: ${{ matrix.arch }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}

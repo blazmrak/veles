@@ -17,10 +17,14 @@ import config.Config;
 import config.ConfigDoc.ConfDependency.Scope;
 import utils.Executor.ProcessSandbox;
 
+/**
+ * Provides executable CLI commands for each of the compiled artifacts or all possible compiled
+ * artifacts if running with CI=true.
+ */
 public class ExecArgumentProvider implements ArgumentsProvider {
 	private static final String runtimeClasspath = mavenDeps().add(Scope.COMPILE, Scope.RUNTIME)
 		.classpath()
-		.add(Config.outputClassesDir())
+		.add(Config.outputClassesDir().toAbsolutePath())
 		.toString();
 
 	@Override
@@ -29,34 +33,43 @@ public class ExecArgumentProvider implements ArgumentsProvider {
 		var list = new ArrayList<ProcessSandbox>();
 		var isCI = "true".equals(System.getenv("CI"));
 
-		if (isCI || Files.exists(Config.outputJavaJarPath())) {
-			list.add(new ProcessSandbox("jar", new CliCommand.Java().jar(Config.outputJavaJarPath())));
+		if (isCI || Files.exists(Config.outputJavaJarPath().toAbsolutePath())) {
+			list.add(
+				new ProcessSandbox(
+					"jar",
+					new CliCommand.Java().jar(Config.outputJavaJarPath().toAbsolutePath())
+				)
+			);
 		}
 
-		if (isCI || Files.exists(Config.outputJavaUberJarPath())) {
-			list
-				.add(new ProcessSandbox("uber", new CliCommand.Java().jar(Config.outputJavaUberJarPath())));
+		if (isCI || Files.exists(Config.outputJavaUberJarPath().toAbsolutePath())) {
+			list.add(
+				new ProcessSandbox(
+					"uber",
+					new CliCommand.Java().jar(Config.outputJavaUberJarPath().toAbsolutePath())
+				)
+			);
 		}
 
 		var nativeName = Os.isWindows()
 			? Config.outputNativeExecutableName() + ".exe"
 			: Config.outputNativeExecutableName();
-		var nativePath = Config.outputDir().resolve(nativeName);
+		var nativePath = Config.outputDir().resolve(nativeName).toAbsolutePath();
 		if (isCI || Files.exists(nativePath)) {
 			list.add(new ProcessSandbox("native", new CliCommand(nativePath.toString())));
 		}
 
-		if (isCI || Files.exists(Config.outputClassesDir())) {
+		if (isCI || Files.exists(Config.outputClassesDir().toAbsolutePath())) {
 			list.add(
 				new ProcessSandbox("classes", new CliCommand.Java().classpath(runtimeClasspath).args("App"))
 			);
 		}
 
-		if (isCI || Files.exists(Config.outputExplodedDir())) {
+		if (isCI || Files.exists(Config.outputExplodedDir().toAbsolutePath())) {
 			list.add(
 				new ProcessSandbox(
 					"exploded",
-					new CliCommand.Java().classpath(Config.outputExplodedDir()).args("App")
+					new CliCommand.Java().classpath(Config.outputExplodedDir().toAbsolutePath()).args("App")
 				)
 			);
 		}

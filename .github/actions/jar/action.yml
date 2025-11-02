@@ -1,0 +1,62 @@
+name: Build uber jar
+description: Action for building uber jar
+
+inputs:
+  veles-version:
+    description: Version of Veles to use for build
+    required: true
+    default: 0.1.0
+outputs:
+  version:
+    description: Version number
+    value: ${{ steps.ver.outputs.random-number }}
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-java@v5
+      with:
+        distribution: "temurin"
+        java-version: "25.0.1"
+
+    - name: Download veles
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        gh release download ${{ env.veles-version }} --pattern "*.jar" --dir ./release
+    - name: Format
+      shell: bash
+      run: |
+        java -jar ./release/veles-${{ env.veles-version}}.jar format -c
+    - name: Cache Maven dependencies
+      id: cache-npm
+      uses: actions/cache@v4
+      with:
+        path: ~/.m2/repository
+        key: maven-${{ hashFiles('veles.yaml') }}
+        restore-keys: |
+          maven-
+    - name: Update release version
+      shell: bash
+      id: ver
+      run: |
+        if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+          echo "${GITHUB_REF#refs/tags/}" > ./src/VERSION
+        else
+          echo ">=$(gh release list --exclude-pre-releases --json tagName --jq '.[0].tagName')-dev-${GITHUB_SHA:0:7}" > ./src/VERSION
+        fi
+        cat src/VERSION >> $GITHUB_OUTPUT
+      env:
+        GH_TOKEN: ${{ github.token }}
+
+    - name: Compile
+      shell: bash
+      run: |
+        java -jar ./release/veles-${{ env.veles-version}}.jar compile -u
+
+    - name: Upload jar
+      uses: actions/upload-artifact@v4
+      with:
+        name: veles-jar
+        path: target/app-uber.jar
