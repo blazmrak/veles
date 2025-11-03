@@ -13,7 +13,7 @@ The JDK CLI, reimagined for simplicity
 - `veles format` - includes Eclipse formatter with sane config
 - `veles lsp` - generates dotfiles for JdtLS, which also means that your code is formatted as you go
 - It has a `--dry-run` option that prints the JDK commands, so that you can learn what is happening under the hood.
-- If you hate it or have outgrown it, you can use `veles export` to convert it into a Maven project.
+- If you hate it or have outgrown it, `pom.xml` is always ready.
 
 ## Installation
 
@@ -30,6 +30,7 @@ in a new terminal window.
 
 Depending on how you want to run it, there are multiple options:
 
+0. Download the JAR
 1. Install SDKMAN (Optional)
 2. Install JDK 24+
 3. Install GraalVM (Optional)
@@ -46,9 +47,7 @@ and got curious how far could you come with modern JDK realistically. The
 answer is "not that far". But by just having a some opinions and not solving
 for every possible problem under the sun, the answer is "surprisingly far".
 So if you are just developing an application or writing a script and
-Maven seems like an overkill, you can use Veles. If at any point you
-feel like Maven would be better, you can export Veles project to Maven
-via `veles export`.
+Maven seems like an overkill, you can use Veles.
 
 ## Goals
 
@@ -216,7 +215,7 @@ end up mashed together in the final artifact anyways. So just put non
 `.java` files inside whatever your source directory is, alongside your
 source code. I haven't thought of a case, where this isn't a win.
 
-## So why another build tool?
+## Why another build tool?
 
 This question constantly pops up in a number of different forms. The answer
 is simple: Veles is **not a build tool**, unless you think JDK is a build tool.
@@ -225,7 +224,7 @@ etc. etc. don't know how to compile your code and run your tests, the Maven
 and Gradle plugins do. The job of these tools is to define the pipeline your
 code must go through in order for it to be "built" and you can customize it
 pretty much as much as you want. All this to say, build tools concern
-themselves with planning, not doing.
+themselves with orchestrating, not doing.
 
 Veles does not care about that, it just carries out common operations with a simpler
 CLI API. You could use Veles in a Maven or Gradle plugin, but that would not make
@@ -252,7 +251,7 @@ the equivalent of Webpack or Groovy/Kotlin, just because they wanted to use a
 library, in 2025, or any year for that matter, is... absurd... to me at least.
 I haven't had this experience anywhere else, with exception to C.
 
-I bluit Veles to be a smaller step up if you come from just using the
+I built Veles to be a smaller step up if you come from just using the
 JDK, than any build tool is. The commands are analogous to what you do when
 using the JDK, it's just that the arguments are autofilled for you. It's also
 easy to see what is actually happening under the covers. I also purposefully
