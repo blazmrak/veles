@@ -1,5 +1,7 @@
 package commands;
 
+import static common.DependencyResolution.getDocumentation;
+import static common.DependencyResolution.getSources;
 import static java.util.stream.Collectors.joining;
 
 import java.io.IOException;
@@ -18,9 +20,11 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import common.DependencyResolution;
 import common.MavenPom;
 import common.Paths;
 import config.Config;
+import config.ConfigDoc.Gav;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
@@ -35,6 +39,16 @@ public class Lsp implements Runnable {
 	public void run() {
 		updateEditorConfig();
 		updateFormatterSettings();
+		if (pullDocumentation) {
+			DependencyResolution.mavenDeps()
+				.add(Config.getAllDependencies().toList())
+				.resolve()
+				.forEach(d -> {
+					var gav = new Gav(d.getGroupId(), d.getArtifactId(), d.getVersion());
+					getDocumentation(gav, !pullDocumentation);
+					getSources(gav, !pullDocumentation);
+				});
+		}
 		MavenPom.generatePomXml();
 	}
 
