@@ -2,6 +2,7 @@ package common;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -193,6 +194,11 @@ public class DependencyResolution {
 
 		public ResolutionList add(ConfDependency... dependencies) {
 			Collections.addAll(this.dependencies, dependencies);
+			return this;
+		}
+
+		public ResolutionList add(Collection<ConfDependency> dependencies) {
+			this.dependencies.addAll(dependencies);
 			return this;
 		}
 
