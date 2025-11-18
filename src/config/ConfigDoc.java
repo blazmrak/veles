@@ -1,18 +1,24 @@
 package config;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.eclipse.aether.artifact.Artifact;
 
+import common.CliCommand;
 import config.ConfigDoc.ConfDependency.Scope;
 
 public class ConfigDoc {
 	public String artifact;
 	public Settings settings = new Settings();
+	public Map<String, Script> scripts = new HashMap<>();
 	public List<ConfDependency> dependencies = new ArrayList<>();
 
 	public static ConfigDoc parse(Object obj) {
@@ -25,6 +31,16 @@ public class ConfigDoc {
 			var settingsVal = m.get("settings");
 			if (settingsVal != null && settingsVal instanceof Map val) {
 				target.settings = Settings.parse(val);
+			}
+			var scriptsVal = m.get("scripts");
+			if (scriptsVal != null && scriptsVal instanceof Map val) {
+				@SuppressWarnings("unchecked")
+				var scripts = (Map<String, Object>) val;
+				target.scripts = scripts.entrySet()
+					.stream()
+					.map(entry -> Map.entry(entry.getKey(), Script.parse(entry.getValue())))
+					.filter(entry -> entry.getValue() != null)
+					.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 			}
 			var dependenciesVal = m.get("dependencies");
 			if (dependenciesVal != null && dependenciesVal instanceof List val) {
@@ -47,6 +63,51 @@ public class ConfigDoc {
 	public String toString() {
 		return "{" + "artifact: " + artifact + ", " + "settings: " + settings + ", " + "dependencies: "
 			+ dependencies + "}";
+	}
+
+	public static class Script {
+		public List<String> args;
+		public List<ConfDependency> dependencies = new ArrayList<>();
+
+		@SuppressWarnings("unchecked")
+		public static Script parse(Object obj) {
+			var result = new Script();
+			if (obj instanceof String str) {
+				parseScript(result, str);
+				return result;
+			} else if (obj instanceof Map map) {
+				var m = (Map<String, Object>) map;
+				var command = m.get("command");
+				if (command instanceof String com) {
+					parseScript(result, com);
+				} else {
+					throw new IllegalArgumentException("Script should contain 'command' property");
+				}
+				var deps = m.get("dependencies");
+				if (deps instanceof List d) {
+					result.dependencies = d.stream()
+						.map(dep -> new ConfDependency(new Gav((String) dep), Scope.RUNTIME))
+						.toList();
+				}
+				return result;
+			} else if (obj instanceof List l) {
+				var ls = (List<String>) l;
+				result.args = ls;
+			} else {
+				System.out.println(obj);
+			}
+
+			return null;
+		}
+
+		private static void parseScript(Script result, String command) {
+			result.args = new ArrayList<String>();
+			try {
+				Collections.addAll(result.args, CliCommand.parseArgs(command));
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+		}
 	}
 
 	public static class Settings {
@@ -305,6 +366,11 @@ public class ConfigDoc {
 		public Gav gav;
 		public Scope scope;
 		private String jarName;
+
+		public ConfDependency(String gav) {
+			this.gav = new Gav(gav);
+			this.scope = Scope.RUNTIME;
+		}
 
 		public ConfDependency(Gav gav, Scope scope) {
 			this.gav = gav;

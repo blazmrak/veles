@@ -26,6 +26,7 @@ import common.Paths;
 import config.ConfigDoc.ConfDependency;
 import config.ConfigDoc.ConfDependency.Scope;
 import config.ConfigDoc.Gav;
+import config.ConfigDoc.Script;
 import config.ConfigDoc.Settings.FormatIndent;
 import config.ConfigDoc.Settings.Formatter;
 
@@ -349,6 +350,10 @@ public class Config {
 
 	private static ConfigDoc defaultConfig() {
 		return new ConfigDoc();
+	}
+
+	public static Map<String, Script> getScripts() {
+		return config.scripts;
 	}
 
 	private static class VelesRepresenter extends Representer {

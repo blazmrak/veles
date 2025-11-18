@@ -1,5 +1,8 @@
 package common;
 
+import java.io.IOException;
+import java.io.StreamTokenizer;
+import java.io.StringReader;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -54,6 +57,25 @@ public class CliCommand {
 
 	public List<String> get() {
 		return command;
+	}
+
+	public static String[] parseArgs(String args) throws IOException {
+		var tok = new StreamTokenizer(new StringReader(args));
+		tok.resetSyntax();
+		tok.wordChars('!', '~');
+
+		List<String> result = new ArrayList<>();
+		while (tok.nextToken() != StreamTokenizer.TT_EOF) {
+			var token = tok.sval != null
+				? tok.sval
+				: String.valueOf((char) tok.ttype);
+			token = token.strip();
+			if (!token.isBlank()) {
+				result.add(token);
+			}
+		}
+
+		return result.toArray(new String[0]);
 	}
 
 	public static class Javac extends CliCommand {

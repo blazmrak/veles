@@ -5,6 +5,7 @@ import ch.qos.logback.classic.Logger;
 import commands.Compile;
 import commands.Dep;
 import commands.Dev;
+import commands.Do;
 import commands.Format;
 import commands.Init;
 import commands.Lsp;
@@ -20,8 +21,8 @@ import picocli.CommandLine.Command;
 	description = { "Simple JDK wrapper" },
 	mixinStandardHelpOptions = true,
 	versionProvider = VersionProvider.class,
-	subcommands = { Init.class, Dev.class, Run.class, Compile.class, Start.class, Dep.class,
-		Lsp.class, Format.class, GenerateCompletion.class }
+	subcommands = { Init.class, Dev.class, Run.class, Compile.class, Start.class, Do.class,
+		Dep.class, Lsp.class, Format.class, GenerateCompletion.class }
 )
 public class App {
 	public static void main(String[] args) {
