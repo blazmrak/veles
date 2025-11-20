@@ -26,6 +26,12 @@ for your platform and add the binary to `PATH`.
 Once you updated the `PATH`, you can test if it worked by running `veles --help`
 in a new terminal window.
 
+### Quick start with `gg.cmd`
+
+1. Download [gg.cmd](https://github.com/eirikb/gg) from their [download link](https://github.com/eirikb/gg/releases/latest/download/gg.cmd)
+2. Linux: Run `sh -x gg.cmd gh/blazmrak/veles --help`
+3. Windows: Run `.\gg.cmd gh/blazmrak/veles --help`
+
 ### Manual
 
 Depending on how you want to run it, there are multiple options:
