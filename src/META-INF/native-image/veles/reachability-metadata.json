@@ -433,7 +433,11 @@
         {
           "name": "getTestSourceDirectory",
           "parameterTypes": []
-        }
+        },
+				{
+					"name": "getTestOutputDirectory",
+					"parameterTypes": []
+				}
       ]
     },
     {
@@ -442,7 +446,11 @@
         {
           "name": "getDirectory",
           "parameterTypes": []
-        }
+        },
+				{
+					"name": "getFinalName",
+					"parameterTypes": []
+				}
       ]
     },
     {
