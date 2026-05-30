@@ -23,6 +23,8 @@ import picocli.CommandLine.Mixin;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
+/// Formatting options are
+/// accessible [here](https://github.com/eclipse-jdtls/eclipse-jdt-core-incubator/blob/c683d2ce94cc80a4850c16b1e1d50341191e8cb2/org.eclipse.jdt.core/formatter/org/eclipse/jdt/internal/formatter/DefaultCodeFormatterOptions.java#L37)
 @Command(name = "format")
 public class Format implements Runnable {
 	@Mixin
